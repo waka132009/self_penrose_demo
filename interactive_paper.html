@@ -11,7 +11,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
     <!-- Chosen Palette: Cosmic Neutrals (Dark Theme) -->
     <!-- Application Structure Plan: 論文の複雑な概念を段階的に理解させるため、テーマ別のセクション構造を採用。まず「序論」で問題提起し、「核心メカニズム」でインタラクティブな図解とアニメーションを用いて視覚的に解説。次に「インタラクティブ・シミュレータ」でユーザーがパラメータを操作してモデルの挙動を探求できるようにし、「Hook/Kill-shot」で検証の設計図を示し、最後に「結論と意義」でモデルの重要性をまとめる。協調的な研究姿勢を示すフッターと誓約文を追加。 -->
-    <!-- Visualization & Content Choices: 1. [論文Fig 1: メカニズムの模式図] -> Goal: 動的プロセスを直感的に理解させる -> Viz: HTML/CSSによるインタラクティブ図解 + JSアニメーション。 2. [論文Fig 2-3: パラメータと光度の関係] -> Goal: パラメータが結果にどう影響するかを定量的に探求させる -> Viz: Chart.jsによる動的線グラフ。 3. [検証の設計図] -> Goal: モデルの検証可能性を明確にし、専門家との協調を促す -> Viz: 専用の箇条書きボックス。 -->
+    <!-- Visualization & Content Choices: 1. [論文Fig 1: メカニズムの模式図] -> Goal: 動的プロセスを直感的に理解させる -> Viz: HTML/CSSによるインタラクティブ図解 + JSアニメーション。 2. [論文Fig 2-3: パラメータと光度の関係] -> Goal: パラメータが結果にどう影響するかを定量的に探求させる -> Viz: Chart.jsによる動的線グラフと閾値・基準線。 3. [検証の設計図] -> Goal: モデルの検証可能性を明確にし、専門家との協調を促す -> Viz: 専用の箇条書きボックス。 -->
     <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
     <style>
         body {
@@ -90,6 +90,11 @@
         .hook-box {
             border-left: 4px solid #facc15; /* Tailwind yellow-400 */
         }
+        .math-variable {
+            font-family: serif; 
+            font-style: italic; 
+            white-space: nowrap;
+        }
     </style>
 </head>
 <body class="antialiased">
@@ -104,7 +109,7 @@
             <h1 class="text-3xl md:text-5xl font-bold text-white mb-2" data-key="title">自己維持ペンローズ励起モデル</h1>
             <p class="text-lg md:text-xl text-sky-300" data-key="subtitle">クエーサーの超エディントン光度を説明する新理論</p>
             <p class="mt-2 max-w-3xl mx-auto text-gray-500 text-sm italic">
-                <span data-key="version_label">Version</span> v1.0.1 &mdash; <span data-key="covenant_header">Independent researcher &mdash; AI-assisted, human-responsible. Testing left to domain teams.</span>
+                <span data-key="version_label">Version</span> v1.1.1 &mdash; <span data-key="covenant_header">Independent researcher &mdash; AI-assisted, human-responsible. Testing left to domain teams.</span>
             </p>
         </header>
 
@@ -199,7 +204,7 @@
                     <p class="mb-6 text-sm italic text-gray-400" data-key="simulator_note">
                         (注記: このシミュレータの数値は例示であり、厳密なモデル計算結果ではありません。ただし、$\epsilon_{\rm coup}(a_{*})$の**閾値的な立ち上がり**を捉えるというモデルの核心的な振る舞いは反映しています。)
                     </p>
-                    <p class="text-center max-w-3xl mx-auto mb-8 text-gray-400" data-key="sec3_p_intro">このモデルの核心的なパラメータを操作して、クエーサーの光度がどのように変化するかをシミュレーションしてみましょう。ブラックホールのスピン ($a_{*}$) と結合効率 ($\epsilon_{\rm coup}$) が、光度 ($L/L_{\rm Edd}$) にどのように影響するかをインタラクティブに探求できます。</p>
+                    <p class="text-center max-w-3xl mx-auto mb-8 text-gray-400" data-key="sec3_p_intro">このモデルの核心的なパラメータを操作して、クエーサーの光度がどのように変化するかをシミュレーションしてみましょう。ブラックホールのスピン ($a_{*}$) と結合効率 ($\epsilon_{\rm coup}$) が、トータル光度 ($L_{\rm tot}/L_{\rm Edd}$) にどのように影響するかをインタラクティブに探求できます。</p>
                     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
                         <div class="lg:col-span-1 space-y-6">
                             <div>
@@ -223,7 +228,7 @@
                                 <p class="text-sm text-gray-400 mt-2" data-key="coupling_desc">BHの回転エネルギーが、どれだけ効率的に円盤を加熱するエネルギーに変換されるかを示します。</p>
                             </div>
                             <div class="bg-gray-900/50 rounded-lg p-4 text-center">
-                                <h3 class="font-bold text-lg text-white" data-key="lum_pred_title">予測される光度</h3>
+                                <h3 class="font-bold text-lg text-white" data-key="lum_pred_title">予測される光度 ($L_{\rm tot}/L_{\rm Edd}$)</h3>
                                 <p class="text-4xl font-mono my-2 text-yellow-300"><span id="luminosity-value">2.43</span> $L_{\rm Edd}$</p>
                                 <p id="luminosity-text" class="text-sm text-gray-300 h-10" data-key="lum_feedback_2_5">安定した超エディントン光度。多くのクエーサーで観測される典型的な状態です。</p>
                             </div>
@@ -239,22 +244,27 @@
 
              <section id="validation" class="mb-16 scroll-mt-24">
                 <h2 class="text-2xl md:text-3xl font-bold text-white mb-6 text-center" data-key="sec5_title">4. 検証の設計図：Hooks & Kill-shots</h2>
-                <p class="text-center max-w-3xl mx-auto mb-8 text-gray-400" data-key="sec5_p_intro">本モデルを棄却または支持するための、具体的かつ観測可能な予測を提示します。これは、実データに基づく検証を行う専門家チームに向けた「設計図」です。</p>
                 <div class="glass-card rounded-lg p-6 md:p-8 hook-box pl-6">
-                    <h3 class="text-white font-bold mb-4 text-xl" data-key="hook_box_title">観測的フックとモデル棄却条件</h3>
-                    <ul class="list-disc list-inside text-gray-300 space-y-3 leading-relaxed">
+                    <h3 class="text-white font-bold mb-4 text-xl" data-key="hook_box_title">観測フック / 反証条件 (Hooks & Kill-shots)</h3>
+                    <p id="validation-target" class="text-gray-400 text-sm mb-3" data-key="validation_target_ja">
+                        対象は <b>高スピン</b> ($a_{*} > a_{\rm th}$) かつ <b>高Edd比</b> ($\lambda$高)・透明条件 $\ell \lesssim 30$。
+                    </p>
+                    <p id="validation-target-en" class="text-gray-400 text-sm mb-3 hidden" data-key="validation_target_en">
+                        Target sample: <b>high spin</b> ($a_{*} > a_{\rm th}$), <b>high Eddington ratio</b> ($\lambda$ high), transparency $\ell \lesssim 30$.
+                    </p>
+                    <ul class="list-disc list-inside text-gray-300 text-sm leading-6 space-y-1">
                         <li>
-                            <b class="text-yellow-400" data-key="hook_title">フック (モデル支持)</b>:
-                            <span data-key="hook_list_1">Fe K$\alpha$/UV ラグのエネルギー依存性の検出。</span>
-                            <span data-key="hook_list_2">偏光度とBHスピンの強い相関。</span>
-                            <span data-key="hook_list_3">MeV領域に特徴的な肩を持つスペクトルの観測。</span>
+                            <b class="text-yellow-400" data-key="hook_title">Hook（支持）:</b> 
+                            <span data-key="hook_content">Fe K$\alpha$/UVラグの<strong>エネルギー依存</strong>、偏光度・方位の<strong>スピン依存</strong>、EUV/MeV域の<strong>肩</strong>の検出。</span>
                         </li>
                         <li class="mt-4">
-                            <b class="text-red-400" data-key="killshot_title">キルショット (モデル棄却)</b>: 
-                            <span data-key="killshot_list_1">(高スピン $a_{*} \to 1$, 高光度 $\lambda$)において、MeV肩が**恒常的に不在**である。</span>
-                            <span data-key="killshot_list_2">X線光度とUV光度の間の遅延（ラグ）に**エネルギー依存性がない**。</span>
-                            <span data-key="killshot_list_3">ボロメータ光度 $L_{\rm bol}$ と $a_{*}$ の間に**逆相関が出ない**。</span>
-                            <span data-key="killshot_list_4">放出される偏光が、赤道面ではなく**極方向**に主導されている。</span>
+                            <b class="text-red-400" data-key="killshot_title">Kill-shot（棄却）:</b>
+                            <ol class="list-decimal ml-5 space-y-1" data-key="killshot_list">
+                                <li data-key="killshot_1">高スピン・高$\lambda$サンプルで <b>MeV肩が恒常的に不在</b>。</li>
+                                <li data-key="killshot_2">X→UVラグに <b>エネルギー依存が見られない</b>。</li>
+                                <li data-key="killshot_3">$L_{\rm bol}$ と $a_{*}$ の<b>逆相関が成立しない</b>。</li>
+                                <li data-key="killshot_4">偏光が<b>等方</b>または<b>極方向主導</b>（赤道面優勢でない）。</li>
+                            </ol>
                         </li>
                     </ul>
                 </div>
@@ -302,6 +312,10 @@
     </div>
 
     <script>
+        // --- Configuration and Data ---
+        const A_THRESHOLD = 0.97; // 論文で示された閾値スピン
+        const L_ACC_NORM = 1.0; // 降着光度 L_acc / L_Edd (定常的な値を 1.0 と仮定)
+
         const LANG_DATA = {
             'ja': {
                 'title': '自己維持ペンローズ励起モデル',
@@ -337,7 +351,7 @@
                 'bz_note': '(注記: 本枠組みは赤道面の放射的フィードバックを扱い、極方向の Blandford–Znajek (BZ) パワーとは独立に見積もられています。)',
                 'sec3_title': '3. インタラクティブ・シミュレータ',
                 'simulator_note': '(注記: このシミュレータの数値は例示であり、厳密なモデル計算結果ではありません。ただし、$\\epsilon_{\\rm coup}(a_{*})$の**閾値的な立ち上がり**を捉えるというモデルの核心的な振る舞いは反映しています。)',
-                'sec3_p_intro': 'このモデルの核心的なパラメータを操作して、クエーサーの光度がどのように変化するかをシミュレーションしてみましょう。ブラックホールのスピン ($a_{*}$) と結合効率 ($\\epsilon_{\\rm coup}$) が、光度 ($L/L_{\\rm Edd}$) にどのように影響するかをインタラクティブに探求できます。',
+                'sec3_p_intro': 'このモデルの核心的なパラメータを操作して、クエーサーの光度がどのように変化するかをシミュレーションしてみましょう。ブラックホールのスピン ($a_{*}$) と結合効率 ($\\epsilon_{\\rm coup}$) が、トータル光度 ($L_{\\rm tot}/L_{\\rm Edd}$) にどのように影響するかをインタラクティブに探求できます。',
                 'spin_label': 'ブラックホール・スピン ($a_{*})$',
                 'spin_low': '高速回転 (0.9)',
                 'spin_high': '極限回転 (1.0)',
@@ -346,26 +360,23 @@
                 'coupling_low': '低い (0.001)',
                 'coupling_high': '高い (0.1)',
                 'coupling_desc': 'BHの回転エネルギーが、どれだけ効率的に円盤を加熱するエネルギーに変換されるかを示します。',
-                'lum_pred_title': '予測される光度',
+                'lum_pred_title': '予測される光度 ($L_{\\rm tot}/L_{\\rm Edd}$)',
                 'lum_feedback_lt_2': '準エディントン光度。モデルの効果は限定的です。',
                 'lum_feedback_2_5': '安定した超エディントン光度。多くのクエーサーで観測される典型的な状態です。',
                 'lum_feedback_5_10': '非常に高い光度。一時的なフレア現象として観測される可能性があります。',
                 'lum_feedback_gt_10': '極端な光度。非常に稀な、爆発的なエネルギー解放を示唆します。',
-                'chart_y_title': '光度 ($L / L_{\\rm Edd}$)',
+                'chart_y_title': 'トータル光度 ($L_{\\rm tot} / L_{\\rm Edd}$)',
                 'chart_x_title': 'ブラックホール・スピン ($a_{*})$',
-                'chart_dataset_label': (eps) => `結合効率 $\\epsilon_{\\rm coup}$=${eps}での光度`,
-                'sec5_title': '4. 検証の設計図：Hooks & Kill-shots',
-                'sec5_p_intro': '本モデルを棄却または支持するための、具体的かつ観測可能な予測を提示します。これは、実データに基づく検証を行う専門家チームに向けた「設計図」です。',
-                'hook_box_title': '観測的フックとモデル棄却条件',
-                'hook_title': 'フック (モデル支持)',
-                'hook_list_1': 'Fe K$\\alpha$/UV ラグのエネルギー依存性の検出。',
-                'hook_list_2': '偏光度とBHスピンの強い相関。',
-                'hook_list_3': 'MeV領域に特徴的な肩を持つスペクトルの観測。',
-                'killshot_title': 'キルショット (モデル棄却)',
-                'killshot_list_1': '(高スピン $a_{*} \\to 1$, 高光度 $\\lambda$)において、MeV肩が**恒常的に不在**である。',
-                'killshot_list_2': 'X線光度とUV光度の間の遅延（ラグ）に**エネルギー依存性がない**。',
-                'killshot_list_3': 'ボロメータ光度 $L_{\\rm bol}$ と $a_{*}$ の間に**逆相関が出ない**。',
-                'killshot_list_4': '放出される偏光が、赤道面ではなく**極方向**に主導されている。',
+                'chart_dataset_label': (eps) => `トータル光度 ($\epsilon_{\\rm coup}$=${eps})`,
+                'hook_box_title': '観測フック / 反証条件 (Hooks & Kill-shots)',
+                'validation_target_ja': '対象は <b>高スピン</b> ($a_{*} > a_{\\rm th}$) かつ <b>高Edd比</b> ($\\lambda$高)・透明条件 $\\ell \\lesssim 30$。',
+                'hook_title': 'Hook（支持）:',
+                'hook_content': 'Fe K$\\alpha$/UVラグの<strong>エネルギー依存</strong>、偏光度・方位の<strong>スピン依存</strong>、EUV/MeV域の<strong>肩</strong>の検出。',
+                'killshot_title': 'Kill-shot（棄却）:',
+                'killshot_1': '高スピン・高$\\lambda$サンプルで <b>MeV肩が恒常的に不在</b>。',
+                'killshot_2': 'X→UVラグに <b>エネルギー依存が見られない</b>。',
+                'killshot_3': '$L_{\\rm bol}$ と $a_{*}$ の<b>逆相関が成立しない</b>。',
+                'killshot_4': '偏光が<b>等方</b>または<b>極方向主導</b>（赤道面優勢でない）。',
                 'sec4_title': '5. 結論と科学的意義',
                 'sec4_p_intro': 'この「自己維持ペンローズ励起」モデルは、単にクエーサーの異常光度を説明するだけでなく、ブラックホール物理学におけるいくつかの重要な示唆を与えます。',
                 'concl_1_title': 'スピンの自己制御メカニズム',
@@ -410,7 +421,7 @@
                 'bz_note': '(Note: This framework addresses equatorial radiative feedback and is independently estimated from the polar Blandford–Znajek (BZ) power.)',
                 'sec3_title': '3. Interactive Simulator',
                 'simulator_note': '(Note: The numbers in this simulator are illustrative and do not represent strict model calculations. They capture the core behavior of the threshold-shaped onset of $\\epsilon_{\\rm coup}(a_{*})$.)',
-                'sec3_p_intro': 'Let\'s simulate how quasar luminosity changes by manipulating the core parameters of this model. Explore interactively how the black hole spin ($a_{*}$) and coupling efficiency ($\\epsilon_{\\rm coup}$) influence the resulting luminosity ($L/L_{\\rm Edd}$).',
+                'sec3_p_intro': 'Let\'s simulate how quasar luminosity changes by manipulating the core parameters of this model. Explore interactively how the black hole spin ($a_{*}$) and coupling efficiency ($\\epsilon_{\\rm coup}$) influence the resulting total luminosity ($L_{\\rm tot}/L_{\\rm Edd}$).',
                 'spin_label': 'Black Hole Spin ($a_{*})$',
                 'spin_low': 'Fast Rotation (0.9)',
                 'spin_high': 'Extreme Spin (1.0)',
@@ -419,26 +430,23 @@
                 'coupling_low': 'Low (0.001)',
                 'coupling_high': 'High (0.1)',
                 'coupling_desc': 'Indicates how efficiently the BH\'s rotational energy is converted into heat for the accretion disk.',
-                'lum_pred_title': 'Predicted Luminosity',
+                'lum_pred_title': 'Predicted Luminosity ($L_{\\rm tot}/L_{\\rm Edd}$)',
                 'lum_feedback_lt_2': 'Sub-Eddington luminosity. The model\'s effect is limited.',
                 'lum_feedback_2_5': 'Stable Super-Eddington luminosity. This is the typical state observed in many quasars.',
                 'lum_feedback_5_10': 'Very high luminosity. Potentially observable during temporary flaring episodes.',
                 'lum_feedback_gt_10': 'Extreme luminosity. Suggests a rare, explosive release of energy.',
-                'chart_y_title': 'Luminosity ($L / L_{\\rm Edd}$)',
+                'chart_y_title': 'Total Luminosity ($L_{\\rm tot} / L_{\\rm Edd}$)',
                 'chart_x_title': 'Black Hole Spin ($a_{*})$',
-                'chart_dataset_label': (eps) => `Luminosity at coupling $\\epsilon_{\\rm coup}$=${eps}`,
-                'sec5_title': '4. Validation Blueprint: Hooks & Kill-shots',
-                'sec5_p_intro': 'We provide concrete and observable predictions to either falsify or support this model. This serves as a validation "blueprint" for domain experts performing empirical testing.',
-                'hook_box_title': 'Observational Hooks and Model Falsification Conditions',
-                'hook_title': 'Hooks (Model Support)',
-                'hook_list_1': 'Detection of energy-dependent lag in Fe K$\\alpha$/UV emission.',
-                'hook_list_2': 'Strong correlation between polarization degree and BH spin.',
-                'hook_list_3': 'Observation of a characteristic MeV shoulder in the spectrum.',
-                'killshot_title': 'Kill-shots (Model Falsification)',
-                'killshot_list_1': 'The MeV shoulder is **persistently absent** at high spin ($a_{*} \\to 1$) and high luminosity ($\\lambda$).',
-                'killshot_list_2': 'The X-ray to UV delay (lag) is **not energy dependent**.',
-                'killshot_list_3': 'The inverse correlation between bolometric luminosity ($L_{\\rm bol}$) and $a_{*}$ **does not vanish**.',
-                'killshot_list_4': 'Emitted polarization is dominated by the **polar direction** rather than the equatorial plane.',
+                'chart_dataset_label': (eps) => `Total Luminosity ($\epsilon_{\\rm coup}$=${eps})`,
+                'hook_box_title': 'Hooks & Kill-shots',
+                'validation_target_en': 'Target sample: <b>high spin</b> ($a_{*} > a_{\\rm th}$), <b>high Eddington ratio</b> ($\\lambda$ high), transparency $\\ell \\lesssim 30$.',
+                'hook_title': 'Hook:',
+                'hook_content': 'energy-dependent Fe K$\\alpha$/UV lags; spin-dependent polarization degree/angle; EUV/MeV <strong>shoulder</strong>.',
+                'killshot_title': 'Kill-shots:',
+                'killshot_1': 'Persistent absence of a MeV shoulder in high-spin, high-$\\lambda$ objects.',
+                'killshot_2': 'No energy dependence in the X→UV lag.',
+                'killshot_3': 'No negative correlation between $L_{\\rm bol}$ and $a_{*}$.',
+                'killshot_4': 'Polarization isotropic or polar-dominated (not equatorial).',
                 'sec4_title': '5. Conclusion and Scientific Significance',
                 'sec4_p_intro': 'This "Self-Sustained Penrose Excitation" model not only explains the abnormal luminosity of quasars but also provides several critical implications for black hole physics.',
                 'concl_1_title': 'Spin Self-Regulation Mechanism',
@@ -475,8 +483,29 @@
         let animationTimer;
 
         // --- MathJax Initialization (Simulated for LaTeX) ---
+        function applyMathStyles(html) {
+            return html.replace(/\$([^\$]+)\$/g, (match, p1) => {
+                let innerHTML = p1
+                    .replace(/\\rm /g, '')
+                    .replace(/\\times/g, '&times;')
+                    .replace(/\\cdot/g, '&middot;')
+                    .replace(/\\to/g, '&rarr;')
+                    .replace(/\\alpha/g, 'α')
+                    .replace(/\\beta/g, 'β')
+                    .replace(/\\gamma/g, 'γ')
+                    .replace(/\\lambda/g, 'λ')
+                    .replace(/\\bol/g, 'bol') 
+                    .replace(/\{/g, '')
+                    .replace(/\}/g, '')
+                    .replace(/\\/g, '')
+                    .replace(/_/g, '<sub>')
+                    .replace(/\*/g, '</sub>')
+                ;
+                return `<span class="math-variable">${innerHTML}</span>`;
+            });
+        }
+
         function renderMath(lang, callback) {
-            // This function iterates over all relevant elements and replaces LaTeX syntax with styled text
             document.querySelectorAll('[data-key]').forEach(el => {
                 const key = el.getAttribute('data-key');
                 let rawText = LANG_DATA[lang][key];
@@ -484,54 +513,54 @@
                 if (!rawText) return;
                 
                 if (typeof rawText === 'function') {
-                    // Update dynamic label function placeholders
                     if (key === 'chart_dataset_label') {
-                        // The function itself is defined, but the DOM content is handled elsewhere
                         el.textContent = rawText(parseFloat(document.getElementById('coupling').value).toFixed(3));
                     }
                     return;
                 }
 
-                // Simulate LaTeX rendering for $...$
-                let processedHTML = rawText.replace(/\$([^\$]+)\$/g, (match, p1) => {
-                    let innerHTML = p1
-                        .replace(/\\rm /g, '')
-                        .replace(/\\times/g, '&times;')
-                        .replace(/\\cdot/g, '&middot;')
-                        .replace(/\\to/g, '&rarr;')
-                        .replace(/\\alpha/g, 'α')
-                        .replace(/\\beta/g, 'β')
-                        .replace(/\\gamma/g, 'γ')
-                        .replace(/\\lambda/g, 'λ')
-                        .replace(/\\bol/g, 'bol') 
-                        .replace(/\{/g, '')
-                        .replace(/\}/g, '')
-                        .replace(/\\/g, '')
-                        .replace(/_/g, '<sub>')
-                        .replace(/\*/g, '</sub>')
-                    ;
-                    // Use a span with serif font and italic style for math appearance
-                    return `<span style="font-family: serif; font-style: italic; white-space: nowrap;">${innerHTML}</span>`;
-                });
-
-                // Update the element's content with the processed HTML
-                el.innerHTML = processedHTML;
+                el.innerHTML = applyMathStyles(rawText);
             });
-
-            // Execute the callback after text rendering is complete
+            
+            // Handle static validation content (which uses mixed HTML tags)
+            const validationTargetJa = document.getElementById('validation-target');
+            const validationTargetEn = document.getElementById('validation-target-en');
+            
+            if (validationTargetJa) validationTargetJa.innerHTML = applyMathStyles(LANG_DATA['ja']['validation_target_ja']);
+            if (validationTargetEn) validationTargetEn.innerHTML = applyMathStyles(LANG_DATA['en']['validation_target_en']);
+            
             if (callback) {
-                 // Use a small timeout to ensure the DOM has updated before chart redrawing
                  setTimeout(callback, 50);
             }
         }
         
         // --- Core Simulation Logic ---
-        function calculateLuminosity(a_star, epsilon_coup) {
-            // Phenomenological model: Lum ~ epsilon * (1/(1-a*))^0.5
-            const spin_factor = Math.pow(1 / (1 - a_star), 0.5); 
-            const base_lum = 15;
-            let lum = base_lum * epsilon_coup * spin_factor;
-            return Math.min(Math.max(lum, 0), 50); 
+        function calculateSelfLuminosity(a_star, epsilon_coup) {
+            if (a_star < A_THRESHOLD) {
+                // Apply a smooth ramp-up immediately after threshold for visual appeal (but primarily 0 below it)
+                const ramp_factor = Math.max(0, a_star - (A_THRESHOLD - 0.005)) / 0.005;
+                
+                // If far below threshold, L_self is 0
+                if (a_star < A_THRESHOLD - 0.005) return 0;
+                
+                // If near threshold, calculate base L_self and apply ramp factor
+                const spin_factor = Math.pow(1 / (1 - a_star), 0.5); 
+                const SCALING_FACTOR = 21.2;
+                let l_self = L_ACC_NORM * epsilon_coup * SCALING_FACTOR * spin_factor;
+                
+                return l_self * ramp_factor;
+
+            } else {
+                // Above threshold, full formula applies
+                const spin_factor = Math.pow(1 / (1 - a_star), 0.5); 
+                const SCALING_FACTOR = 21.2;
+                return L_ACC_NORM * epsilon_coup * SCALING_FACTOR * spin_factor;
+            }
+        }
+
+        function calculateTotalLuminosity(a_star, epsilon_coup) {
+             const l_self = calculateSelfLuminosity(a_star, epsilon_coup);
+             return L_ACC_NORM + l_self; 
         }
 
         function updateChart(current_epsilon_coup) {
@@ -545,10 +574,9 @@
                 let a = min_a + i * step_size;
                 if (i === steps) a = max_a;
 
-                // CRITICAL FIX: Use object format {x, y} for scatter/line chart data 
                 data.push({
                     x: a,
-                    y: calculateLuminosity(a, current_epsilon_coup)
+                    y: calculateTotalLuminosity(a, current_epsilon_coup)
                 });
             }
             
@@ -560,10 +588,46 @@
             
             luminosityChart.data.datasets[0].data = data;
             
-            // Update axis titles (need to access the object structure directly)
+            // Update axis titles
             luminosityChart.options.scales.x.title.text = LANG_DATA[currentLang].chart_x_title.replace(/\\\$/g, '').replace(/_/g, ' '); 
             luminosityChart.options.scales.y.title.text = LANG_DATA[currentLang].chart_y_title.replace(/\\\$/g, '').replace(/_/g, ' ');
-            
+
+            // Annotations (Threshold line and L_Edd line)
+            luminosityChart.options.plugins.annotation.annotations = [
+                {
+                    type: 'line',
+                    mode: 'vertical',
+                    scaleID: 'x',
+                    value: A_THRESHOLD,
+                    borderColor: 'rgb(255, 99, 132)', // Red for threshold
+                    borderWidth: 2,
+                    borderDash: [5, 5],
+                    label: {
+                        enabled: true,
+                        content: `a* = ${A_THRESHOLD} (Threshold)`,
+                        position: 'start',
+                        backgroundColor: 'rgba(255, 99, 132, 0.8)',
+                        font: { size: 10 }
+                    }
+                },
+                {
+                    type: 'line',
+                    mode: 'horizontal',
+                    scaleID: 'y',
+                    value: L_ACC_NORM,
+                    borderColor: 'rgb(54, 162, 235)', // Blue for L_acc
+                    borderWidth: 1,
+                    borderDash: [2, 2],
+                    label: {
+                        enabled: true,
+                        content: `L/L_Edd = ${L_ACC_NORM} (Accretion Only)`,
+                        position: 'start',
+                        backgroundColor: 'rgba(54, 162, 235, 0.8)',
+                        font: { size: 10 }
+                    }
+                }
+            ];
+
             // Explicitly set X axis scale min/max to ensure proper alignment
             luminosityChart.options.scales.x.min = min_a;
             luminosityChart.options.scales.x.max = max_a;
@@ -585,7 +649,7 @@
             spinValue.textContent = a_star.toFixed(4);
             couplingValue.textContent = epsilon_coup.toFixed(3);
 
-            const lum = calculateLuminosity(a_star, epsilon_coup);
+            const lum = calculateTotalLuminosity(a_star, epsilon_coup);
             luminosityValue.textContent = lum.toFixed(2);
 
             let feedbackKey;
@@ -614,6 +678,9 @@
             const step1Text = document.getElementById('step-1-text');
             const step2Text = document.getElementById('step-2-text');
             const step3Text = document.getElementById('step-3-text');
+            const validationTargetJa = document.getElementById('validation-target');
+            const validationTargetEn = document.getElementById('validation-target-en');
+
 
             // 1. DOM elements (data-key) and Math Rendering
             renderMath(lang, () => {
@@ -633,12 +700,18 @@
                     el.setAttribute(`data-text-${lang}`, DIAGRAM_DATA[key][lang]); 
                 });
 
-                // 3. Update dynamic content (sliders, chart)
+                // 3. Update visibility of validation targets
+                if (validationTargetJa && validationTargetEn) {
+                    validationTargetJa.classList.toggle('hidden', lang === 'en');
+                    validationTargetEn.classList.toggle('hidden', lang === 'ja');
+                }
+
+                // 4. Update dynamic content (sliders, chart)
                 updateLuminosityDisplay(); 
                 resetAnimation(); 
             });
 
-            // 4. Update active button style (handled outside the renderMath callback for responsiveness)
+            // 5. Update active button style
             langToggleJa.classList.toggle('bg-sky-600', lang === 'ja');
             langToggleJa.classList.toggle('text-white', lang === 'ja');
             langToggleJa.classList.toggle('bg-gray-700', lang === 'en');
@@ -770,7 +843,7 @@
             Chart.defaults.borderColor = 'rgba(156, 163, 175, 0.1)';
 
             luminosityChart = new Chart(ctx, {
-                type: 'scatter', // Use scatter to plot {x, y} data points explicitly
+                type: 'scatter', 
                 data: {
                     datasets: [{
                         label: '', 
@@ -780,8 +853,8 @@
                         borderWidth: 2,
                         pointRadius: 0,
                         tension: 0.4,
-                        showLine: true, // Ensure the line is drawn between scatter points
-                        fill: true,
+                        showLine: true, 
+                        fill: 'origin', 
                     }]
                 },
                 options: {
@@ -789,7 +862,7 @@
                     maintainAspectRatio: false,
                     scales: {
                         x: {
-                            type: 'linear', // Use linear scale for continuous X-axis values (a*)
+                            type: 'linear', 
                             title: { display: true, text: '', font: { size: 14 } },
                             min: 0.9,
                             max: 0.9999,
@@ -802,7 +875,10 @@
                     },
                     plugins: {
                         legend: { display: false },
-                        tooltip: { enabled: true, mode: 'index', intersect: false }
+                        tooltip: { enabled: true, mode: 'index', intersect: false },
+                        annotation: { 
+                            annotations: [] 
+                        }
                     }
                 }
             });
@@ -865,5 +941,7 @@
             switchLanguage(currentLang);
         });
     </script>
+    <!-- Chart.js Annotation Plugin CDN (Required for threshold and reference lines) -->
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@1.4.0/dist/chartjs-plugin-annotation.min.js"></script>
 </body>
 </html>
