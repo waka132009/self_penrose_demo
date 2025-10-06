@@ -772,6 +772,11 @@
             // Initial setup
             // Note: switchLanguage calls renderMath()
             switchLanguage(currentLang);
+            
+            // CRITICAL FIX: Explicitly call updateLuminosityDisplay() once the page and chart are ready.
+            // This ensures the chart is populated with data immediately on load.
+            updateLuminosityDisplay(); 
+
 
             spinSlider.addEventListener('input', updateLuminosityDisplay);
             couplingSlider.addEventListener('input', updateLuminosityDisplay);
