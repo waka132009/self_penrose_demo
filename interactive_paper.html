@@ -95,6 +95,12 @@
             font-style: italic; 
             white-space: nowrap;
         }
+        .small-math-variable {
+            font-family: serif; 
+            font-style: italic; 
+            white-space: nowrap;
+            font-size: 0.9em;
+        }
     </style>
 </head>
 <body class="antialiased">
@@ -109,7 +115,7 @@
             <h1 class="text-3xl md:text-5xl font-bold text-white mb-2" data-key="title">自己維持ペンローズ励起モデル</h1>
             <p class="text-lg md:text-xl text-sky-300" data-key="subtitle">クエーサーの超エディントン光度を説明する新理論</p>
             <p class="mt-2 max-w-3xl mx-auto text-gray-500 text-sm italic">
-                <span data-key="version_label">Version</span> v1.1.2 &mdash; <span data-key="covenant_header">Independent researcher &mdash; AI-assisted, human-responsible. Testing left to domain teams.</span>
+                <span data-key="version_label">Version</span> v1.1.10 &mdash; <span data-key="covenant_header">Independent researcher — AI-assisted, human-responsible. Testing left to domain teams.</span>
             </p>
         </header>
 
@@ -137,12 +143,12 @@
                     <div class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6 text-center">
                         <div class="border border-yellow-500/30 rounded-lg p-4">
                             <h3 class="font-bold text-yellow-300 text-lg" data-key="edd_limit_title">理論的限界 (エディントン限界)</h3>
-                            <p class="text-2xl font-mono mt-2">$\sim 1 \, L_{\rm Edd}$</p>
+                            <p class="text-2xl font-mono my-2"><span class="small-math-variable">~ 1 L<sub>Edd</sub></span></p>
                             <p class="text-sm text-gray-400 mt-1" data-key="edd_limit_desc">ブラックホールの重力と光の放射圧が釣り合う明るさ。これを超えると、降着するガスが吹き飛ばされるはず。</p>
                         </div>
                         <div class="border border-red-500/30 rounded-lg p-4">
                             <h3 class="font-bold text-red-300 text-lg" data-key="obs_lum_title">観測される光度</h3>
-                            <p class="text-2xl font-mono mt-2">$2-10 \, L_{\rm Edd}$</p>
+                            <p class="text-2xl font-mono my-2"><span class="small-math-variable">2-10 L<sub>Edd</sub></span></p>
                             <p class="text-sm text-gray-400 mt-1" data-key="obs_lum_desc">多くのクエーサーが理論限界を大幅に超える。この超過エネルギーはどこから来るのか？</p>
                         </div>
                     </div>
@@ -152,7 +158,7 @@
 
             <section id="mechanism" class="mb-16 scroll-mt-24">
                 <h2 class="text-2xl md:text-3xl font-bold text-white mb-6 text-center" data-key="sec2_title">2. 核心メカニズム：ブラックホールの回転からエネルギーを盗む</h2>
-                <p class="text-center max-w-3xl mx-auto mb-8 text-gray-400" data-key="sec2_p_intro">このモデルの中心は、ブラックホールの事象の地平面のすぐ外側にある「エルゴ領域」で起こる特殊な現象です。ここでは、時空そのものがブラックホールの回転に引きずられています。下の図の「アニメーション実行」ボタンを押して、エネルギー抽出の動きをご覧ください。</p>
+                <p class="text-center max-w-3xl mx-auto mb-8 text-gray-400" data-key="sec2_p_intro">このモデルの中心は、ブラックホールの事象の地平線のすぐ外側にある「エルゴ領域」で起こる特殊な現象です。ここでは、時空そのものがブラックホールの回転に引きずられています。下の図の「アニメーション実行」ボタンを押して、エネルギー抽出の動きをご覧ください。</p>
                 <div class="glass-card rounded-lg p-4 md:p-8 flex flex-col lg:flex-row items-center gap-8">
                     <div class="w-full lg:w-1/2 h-[450px] relative flex items-center justify-center">
                         <div id="diagram-container" class="relative w-full h-full flex items-center justify-center">
@@ -208,7 +214,7 @@
                     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
                         <div class="lg:col-span-1 space-y-6">
                             <div>
-                                <label for="spin" class="font-medium text-white" data-key="spin_label">ブラックホール・スピン ($a_{*}$)</label>
+                                <label for="spin" class="font-medium text-white" data-key="spin_label">ブラックホール・スピン ($a_{*})$</label>
                                 <input id="spin" type="range" min="0.9" max="0.9999" step="0.0001" value="0.98" class="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer">
                                 <div class="flex justify-between text-xs text-gray-400 mt-1">
                                     <span data-key="spin_low">高速回転 (0.9)</span>
@@ -246,20 +252,28 @@
                 <h2 class="text-2xl md:text-3xl font-bold text-white mb-6 text-center" data-key="sec5_title">4. 検証の設計図：Hooks & Kill-shots</h2>
                 <div class="glass-card rounded-lg p-6 md:p-8 hook-box pl-6">
                     <h3 class="text-white font-bold mb-4 text-xl" data-key="hook_box_title">観測フック / 反証条件 (Hooks & Kill-shots)</h3>
+                    
                     <p id="validation-target-ja" class="text-gray-400 text-sm mb-3" data-key="validation_target_ja">
                         対象は <b>高スピン</b> ($a_{*} > a_{\rm th}$) かつ <b>高Edd比</b> ($\lambda$高)・透明条件 $\ell \lesssim 30$。
                     </p>
                     <p id="validation-target-en" class="text-gray-400 text-sm mb-3 hidden" data-key="validation_target_en">
-                        Target sample: <b>high spin</b> ($a_{*} > a_{\rm th}$), <b>high Eddington ratio</b> ($\lambda$ high), transparency $\ell \lesssim 30$.
+                        Target: <b>high spin</b> ($a_{*} > a_{\rm th}$), <b>high Eddington ratio</b> ($\lambda$ high), transparency $\ell \lesssim 30$.
                     </p>
+                    
                     <ul class="list-disc list-inside text-gray-300 text-sm leading-6 space-y-1">
                         <li>
                             <b class="text-yellow-400" data-key="hook_title">Hook（支持）:</b> 
-                            <span data-key="hook_content">Fe K$\alpha$/UVラグのエネルギー依存、偏光度・方位のスピン依存、EUV/MeV域の肩の検出。</span>
+                            <span data-key="hook_content">Fe K$\alpha$/UVラグの<strong>エネルギー依存</strong>、偏光度・方位の<strong>スピン依存</strong>、EUV/MeV域の<strong>肩</strong>の検出。</span>
                         </li>
                         <li class="mt-4">
                             <b class="text-red-400" data-key="killshot_title">Kill-shot（棄却）:</b>
-                            <ol class="list-decimal ml-5 space-y-1" data-key="killshot_list">
+                            <p id="killshot-criteria-ja" class="text-gray-400 text-xs my-2" data-key="killshot_criteria_ja">
+                                <b>Kill-shotの判定：</b> 以下の4項目のうち <b>2項目以上</b> が継続的に観測される場合、モデルを棄却します。
+                            </p>
+                            <p id="killshot-criteria-en" class="text-gray-400 text-xs my-2 hidden" data-key="killshot_criteria_en">
+                                <b>Kill-shot Criteria:</b> Model is falsified if <b>$\ge 2$ items</b> below persistently hold.
+                            </p>
+                            <ol class="list-decimal ml-5 space-y-1" id="killshot-list">
                                 <li data-key="killshot_1">高スピン・高$\lambda$サンプルで <b>MeV肩が恒常的に不在</b>。</li>
                                 <li data-key="killshot_2">X→UVラグに <b>エネルギー依存が見られない</b>。</li>
                                 <li data-key="killshot_3">$L_{\rm bol}$ と $a_{*}$ の<b>逆相関が成立しない</b>。</li>
@@ -329,14 +343,14 @@
                 'nav_hook': '検証',
                 'nav_conc': '結論',
                 'sec1_title': '1. 現代宇宙物理学の謎：クエーサーの異常な輝き',
-                'sec1_p1': 'クエーサーは、その中心にある超大質量ブラックホール(SMBH)の重力エネルギーをエネルギー源として輝く、宇宙で最も明るい天体の一つです。しかし、多くのクエーサーは、従来の理論が予測する明るさの限界（$L_{\\rm Edd}$）を数倍から10倍も超える光度で観測されています。これは、ブラックホールへの物質の降着メカニズムに関する我々の理解に、大きな疑問を投げかけています。',
+                'sec1_p1': 'クエーサーは、その中心にある超大質量ブラックホール(SMBH)の重力エネルギーをエネルギー源として輝く、宇宙で最も明るい天体の一つです。しかし、多くのクエーサーは、従来の理論が予測する明るさの限界（$L_{\rm Edd}$）を数倍から10倍も超える光度で観測されています。これは、ブラックホールへの物質の降着メカニズムに関する我々の理解に、大きな疑問を投げかけています。',
                 'edd_limit_title': '理論的限界 (エディントン限界)',
                 'edd_limit_desc': 'ブラックホールの重力と光の放射圧が釣り合う明るさ。これを超えると、降着するガスが吹き飛ばされるはず。',
                 'obs_lum_title': '観測される光度',
                 'obs_lum_desc': '多くのクエーサーが理論限界を大幅に超える。この超過エネルギーはどこから来るのか？',
                 'sec1_p2': '本論文で提案されている「自己維持ペンローズ励起」モデルは、この謎に対する新しい答えを提示します。ブラックホールの回転エネルギーを直接抽出し、降着円盤のエネルギーに変換することで、エディントン限界を超える高輝度を説明する、画期的なメカニズムです。',
                 'sec2_title': '2. 核心メカニズム：ブラックホールの回転からエネルギーを盗む',
-                'sec2_p_intro': 'このモデルの中心は、ブラックホールの事象の地平面のすぐ外側にある「エルゴ領域」で起こる特殊な現象です。ここでは、時空そのものがブラックホールの回転に引きずられています。下の図の「アニメーション実行」ボタンを押して、エネルギー抽出の動きをご覧ください。',
+                'sec2_p_intro': 'このモデルの中心は、ブラックホールの事象の地平線のすぐ外側にある「エルゴ領域」で起こる特殊な現象です。ここでは、時空そのものがブラックホールの回転に引きずられています。下の図の「アニメーション実行」ボタンを押して、エネルギー抽出の動きをご覧ください。',
                 'diag_ergo_label': 'エルゴ領域',
                 'diag_isco_label': 'ISCO',
                 'diag_disk_label': '降着円盤',
@@ -347,35 +361,37 @@
                 'step3_text': 'ステップ3: 【緑】正のエネルギーを持つビームが円盤に向けて放出され、超過光度を生み出す。',
                 'start_animation': 'アニメーション実行',
                 'causal_chain_title': '因果チェーン',
-                'causal_chain_desc': '閾値式 $\\epsilon_{\\rm coup}(a_{*})$ $\\to$ 内縁再加熱 $\\to$ $2-3 \\times L_{\\rm Edd}$ （稀に $5-10 \\times$）',
+                'causal_chain_desc': '閾値式 $\epsilon_{\rm coup}(a_{*})$ $\to$ 内縁再加熱 $\to$ $2-3 \\times L_{\rm Edd}$ （稀に $5-10 \\times$）',
                 'bz_note': '(注記: 本枠組みは赤道面の放射的フィードバックを扱い、極方向の Blandford–Znajek (BZ) パワーとは独立に見積もられています。)',
                 'sec3_title': '3. インタラクティブ・シミュレータ',
-                'simulator_note': '(注記: このシミュレータの数値は例示であり、厳密なモデル計算結果ではありません。ただし、$\\epsilon_{\\rm coup}(a_{*})$の**閾値的な立ち上がり**を捉えるというモデルの核心的な振る舞いは反映しています。)',
-                'sec3_p_intro': 'このモデルの核心的なパラメータを操作して、クエーサーの光度がどのように変化するかをシミュレーションしてみましょう。ブラックホールのスピン ($a_{*}$) と結合効率 ($\\epsilon_{\\rm coup}$) が、トータル光度 ($L_{\\rm tot}/L_{\\rm Edd}$) にどのように影響するかをインタラクティブに探求できます。',
+                'simulator_note': '(注記: このシミュレータの数値は例示であり、厳密なモデル計算結果ではありません。ただし、$\epsilon_{\rm coup}(a_{*})$の**閾値的な立ち上がり**を捉えるというモデルの核心的な振る舞いは反映しています。)',
+                'sec3_p_intro': 'このモデルの核心的なパラメータを操作して、クエーサーの光度がどのように変化するかをシミュレーションしてみましょう。ブラックホールのスピン ($a_{*}$) と結合効率 ($\epsilon_{\rm coup}$) が、トータル光度 ($L_{\rm tot}/L_{\rm Edd}$) にどのように影響するかをインタラクティブに探求できます。',
                 'spin_label': 'ブラックホール・スピン ($a_{*})$',
                 'spin_low': '高速回転 (0.9)',
                 'spin_high': '極限回転 (1.0)',
                 'spin_desc': 'スピンが1に近づくほどエルゴ領域が広がり、エネルギー抽出効率が劇的に向上します。',
-                'coupling_label': '結合効率 ($\\epsilon_{\\rm coup}$)',
+                'coupling_label': '結合効率 ($\epsilon_{\rm coup}$)',
                 'coupling_low': '低い (0.001)',
                 'coupling_high': '高い (0.1)',
                 'coupling_desc': 'BHの回転エネルギーが、どれだけ効率的に円盤を加熱するエネルギーに変換されるかを示します。',
-                'lum_pred_title': '予測される光度 ($L_{\\rm tot}/L_{\\rm Edd}$)',
+                'lum_pred_title': '予測される光度 ($L_{\rm tot}/L_{\rm Edd}$)',
                 'lum_feedback_lt_2': '準エディントン光度。モデルの効果は限定的です。',
                 'lum_feedback_2_5': '安定した超エディントン光度。多くのクエーサーで観測される典型的な状態です。',
                 'lum_feedback_5_10': '非常に高い光度。一時的なフレア現象として観測される可能性があります。',
                 'lum_feedback_gt_10': '極端な光度。非常に稀な、爆発的なエネルギー解放を示唆します。',
-                'chart_y_title': 'トータル光度 ($L_{\\rm tot} / L_{\\rm Edd}$)',
+                'chart_y_title': 'トータル光度 ($L_{\rm tot} / L_{\rm Edd}$)',
                 'chart_x_title': 'ブラックホール・スピン ($a_{*})$',
-                'chart_dataset_label': (eps) => `トータル光度 ($\epsilon_{\\rm coup}$=${eps})`,
+                'chart_dataset_label': (eps) => `トータル光度 ($\epsilon_{\rm coup}$=${eps})`,
                 'hook_box_title': '観測フック / 反証条件 (Hooks & Kill-shots)',
-                'validation_target_ja': '対象は <b>高スピン</b> ($a_{*} > a_{\\rm th}$) かつ <b>高Edd比</b> ($\\lambda$高)・透明条件 $\\ell \\lesssim 30$。',
+                // FIX: HTMLエンティティを使用
+                'validation_target_ja': '対象は <b>高スピン</b> ($a_{*} > a_{\rm th}$) かつ <b>高Edd比</b> ($\lambda$高)・透明条件 &#8467; &lesssim; 30。',
+                'killshot_criteria_ja': '<b>Kill-shotの判定：</b> 以下の4項目のうち <b>2項目以上</b> が継続的に観測される場合、モデルを棄却します。',
                 'hook_title': 'Hook（支持）:',
-                'hook_content': 'Fe K$\\alpha$/UVラグのエネルギー依存、偏光度・方位のスピン依存、EUV/MeV域の肩の検出。',
+                'hook_content': 'Fe K$\alpha$/UVラグの<strong>エネルギー依存</strong>、偏光度・方位の<strong>スピン依存</strong>、EUV/MeV域の<strong>肩</strong>の検出。',
                 'killshot_title': 'Kill-shot（棄却）:',
-                'killshot_1': '高スピン・高$\\lambda$サンプルで <b>MeV肩が恒常的に不在</b>。',
+                'killshot_1': '高スピン・高$\lambda$サンプルで <b>MeV肩が恒常的に不在</b>。',
                 'killshot_2': 'X→UVラグに <b>エネルギー依存が見られない</b>。',
-                'killshot_3': '$L_{\\rm bol}$ と $a_{*}$ の<b>逆相関が成立しない</b>。',
+                'killshot_3': '$L_{\rm bol}$ と $a_{*}$ の<b>逆相関が成立しない</b>。',
                 'killshot_4': '偏光が<b>等方</b>または<b>極方向主導</b>（赤道面優勢でない）。',
                 'sec4_title': '5. 結論と科学的意義',
                 'sec4_p_intro': 'この「自己維持ペンローズ励起」モデルは、単にクエーサーの異常光度を説明するだけでなく、ブラックホール物理学におけるいくつかの重要な示唆を与えます。',
@@ -399,7 +415,7 @@
                 'nav_hook': 'Validation',
                 'nav_conc': 'Conclusion',
                 'sec1_title': '1. The Mystery of Modern Astrophysics: Quasar\'s Abnormal Luminosity',
-                'sec1_p1': 'Quasars are among the brightest objects in the universe, fueled by the gravitational energy of their central Supermassive Black Holes (SMBHs). However, many quasars are observed to shine at luminosities far exceeding the conventional theoretical limit ($L_{\\rm Edd}$), often by factors of two to ten. This disparity challenges our fundamental understanding of accretion physics.',
+                'sec1_p1': 'Quasars are among the brightest objects in the universe, fueled by the gravitational energy of their central Supermassive Black Holes (SMBHs). However, many quasars are observed to shine at luminosities far exceeding the conventional theoretical limit ($L_{\rm Edd}$), often by factors of two to ten. This disparity challenges our fundamental understanding of accretion physics.',
                 'edd_limit_title': 'Theoretical Limit (Eddington Limit)',
                 'edd_limit_desc': 'The luminosity where the gravitational pull of the BH balances the outward radiation pressure from the light. Exceeding this should theoretically blow away the accreting gas.',
                 'obs_lum_title': 'Observed Luminosity',
@@ -417,36 +433,38 @@
                 'step3_text': 'Step 3: [Green] The positive-energy beam is ejected toward the disk, generating super-Eddington luminosity.',
                 'start_animation': 'Run Animation',
                 'causal_chain_title': 'Causal Chain',
-                'causal_chain_desc': 'Threshold function $\\epsilon_{\\rm coup}(a_{*})$ $\\to$ Inner edge reheating $\\to$ $2-3 \\times L_{\\rm Edd}$ (occasionally $5-10 \\times$)',
+                'causal_chain_desc': 'Threshold function $\epsilon_{\rm coup}(a_{*})$ $\to$ Inner edge reheating $\to$ $2-3 \\times L_{\rm Edd}$ (occasionally $5-10 \\times$)',
                 'bz_note': '(Note: This framework addresses equatorial radiative feedback and is independently estimated from the polar Blandford–Znajek (BZ) power.)',
                 'sec3_title': '3. Interactive Simulator',
-                'simulator_note': '(Note: The numbers in this simulator are illustrative and do not represent strict model calculations. They capture the core behavior of the threshold-shaped onset of $\\epsilon_{\\rm coup}(a_{*})$.)',
-                'sec3_p_intro': 'Let\'s simulate how quasar luminosity changes by manipulating the core parameters of this model. Explore interactively how the black hole spin ($a_{*}$) and coupling efficiency ($\\epsilon_{\\rm coup}$) influence the resulting total luminosity ($L_{\\rm tot}/L_{\\rm Edd}$).',
+                'simulator_note': '(Note: The numbers in this simulator are illustrative and do not represent strict model calculations. They capture the core behavior of the threshold-shaped onset of $\epsilon_{\rm coup}(a_{*})$.)',
+                'sec3_p_intro': 'Let\'s simulate how quasar luminosity changes by manipulating the core parameters of this model. Explore interactively how the black hole spin ($a_{*}$) and coupling efficiency ($\epsilon_{\rm coup}$) influence the resulting total luminosity ($L_{\rm tot}/L_{\rm Edd}$).',
                 'spin_label': 'Black Hole Spin ($a_{*})$',
                 'spin_low': 'Fast Rotation (0.9)',
                 'spin_high': 'Extreme Spin (1.0)',
                 'spin_desc': 'As spin approaches 1.0, the ergosphere expands, dramatically increasing the efficiency of energy extraction.',
-                'coupling_label': 'Coupling Efficiency ($\\epsilon_{\\rm coup}$)',
+                'coupling_label': 'Coupling Efficiency ($\epsilon_{\rm coup}$)',
                 'coupling_low': 'Low (0.001)',
                 'coupling_high': 'High (0.1)',
                 'coupling_desc': 'Indicates how efficiently the BH\'s rotational energy is converted into heat for the accretion disk.',
-                'lum_pred_title': 'Predicted Luminosity ($L_{\\rm tot}/L_{\\rm Edd}$)',
+                'lum_pred_title': 'Predicted Luminosity ($L_{\rm tot}/L_{\rm Edd}$)',
                 'lum_feedback_lt_2': 'Sub-Eddington luminosity. The model\'s effect is limited.',
                 'lum_feedback_2_5': 'Stable Super-Eddington luminosity. This is the typical state observed in many quasars.',
                 'lum_feedback_5_10': 'Very high luminosity. Potentially observable during temporary flaring episodes.',
                 'lum_feedback_gt_10': 'Extreme luminosity. Suggests a rare, explosive release of energy.',
-                'chart_y_title': 'Total Luminosity ($L_{\\rm tot} / L_{\\rm Edd}$)',
+                'chart_y_title': 'Total Luminosity ($L_{\rm tot} / L_{\rm Edd}$)',
                 'chart_x_title': 'Black Hole Spin ($a_{*})$',
-                'chart_dataset_label': (eps) => `Total Luminosity ($\epsilon_{\\rm coup}$=${eps})`,
+                'chart_dataset_label': (eps) => `Total Luminosity ($\epsilon_{\rm coup}$=${eps})`,
                 'hook_box_title': 'Hooks & Kill-shots',
-                'validation_target_en': 'Target sample: <b>high spin</b> ($a_{*} > a_{\\rm th}$), <b>high Eddington ratio</b> ($\\lambda$ high), transparency $\\ell \\lesssim 30$.',
+                // FIX: HTMLエンティティを使用
+                'validation_target_en': 'Target: <b>high spin</b> ($a_{*} > a_{\rm th}$), <b>high Eddington ratio</b> ($\lambda$ high), transparency &#8467; &lesssim; 30.',
+                'killshot_criteria_en': '<b>Kill-shot Criteria:</b> Model is falsified if <b>$\ge 2$ items</b> below persistently hold.',
                 'hook_title': 'Hook:',
-                'hook_content': 'energy-dependent Fe K$\\alpha$/UV lags; spin-dependent polarization degree/angle; EUV/MeV shoulder.',
+                'hook_content': 'energy-dependent Fe K$\alpha$/UV lags; spin-dependent polarization; EUV/MeV shoulder.',
                 'killshot_title': 'Kill-shots:',
-                'killshot_1': 'Persistent absence of a MeV shoulder in high-spin, high-$\\lambda$ objects.',
-                'killshot_2': 'No energy dependence in the X→UV lag.',
-                'killshot_3': 'No negative correlation between $L_{\\rm bol}$ and $a_{*}$.',
-                'killshot_4': 'Polarization isotropic or polar-dominated (not equatorial).',
+                'killshot_1': 'Persistent absence of a <b>MeV shoulder</b> (high spin & high $\lambda$).',
+                'killshot_2': 'No <b>energy dependence</b> in the X→UV lag.',
+                'killshot_3': 'No <b>negative correlation</b> between $L_{\rm bol}$ and $a_{*}$.',
+                'killshot_4': 'Polarization <b>isotropic</b> or <b>polar-dominated</b> (not equatorial).',
                 'sec4_title': '5. Conclusion and Scientific Significance',
                 'sec4_p_intro': 'This "Self-Sustained Penrose Excitation" model not only explains the abnormal luminosity of quasars but also provides several critical implications for black hole physics.',
                 'concl_1_title': 'Spin Self-Regulation Mechanism',
@@ -483,7 +501,9 @@
         let animationTimer;
 
         // --- MathJax Initialization (Simulated for LaTeX) ---
-        function applyMathStyles(html) {
+        function applyMathStyles(html, isSmall = false) {
+            const class_name = isSmall ? "small-math-variable" : "math-variable";
+
             return html.replace(/\$([^\$]+)\$/g, (match, p1) => {
                 let innerHTML = p1
                     .replace(/\\rm /g, '')
@@ -497,11 +517,14 @@
                     .replace(/\\bol/g, 'bol') 
                     .replace(/\{/g, '')
                     .replace(/\}/g, '')
-                    .replace(/\\/g, '')
                     .replace(/_/g, '<sub>')
                     .replace(/\*/g, '</sub>')
+                    // --- CRITICAL FIX: Ensure LaTeX commands are converted to Unicode first ---
+                    .replace(/\\ell/g, 'ℓ') // Correct rendering for \ell
+                    .replace(/\\lesssim/g, '≲') // Correct rendering for \lesssim
+                    .replace(/\\/g, '') // Remove remaining backslashes
                 ;
-                return `<span class="math-variable">${innerHTML}</span>`;
+                return `<span class="${class_name}">${innerHTML}</span>`;
             });
         }
 
@@ -525,10 +548,30 @@
             // Handle static validation content (which uses mixed HTML tags)
             const validationTargetJa = document.getElementById('validation-target-ja');
             const validationTargetEn = document.getElementById('validation-target-en');
+            const killshotCriteriaJa = document.getElementById('killshot-criteria-ja');
+            const killshotCriteriaEn = document.getElementById('killshot-criteria-en');
             
+            // FIX: validationTargetのHTML内容を直接更新
             if (validationTargetJa) validationTargetJa.innerHTML = applyMathStyles(LANG_DATA['ja']['validation_target_ja']);
             if (validationTargetEn) validationTargetEn.innerHTML = applyMathStyles(LANG_DATA['en']['validation_target_en']);
             
+            if (killshotCriteriaJa) killshotCriteriaJa.innerHTML = applyMathStyles(LANG_DATA['ja']['killshot_criteria_ja']);
+            if (killshotCriteriaEn) killshotCriteriaEn.innerHTML = applyMathStyles(LANG_DATA['en']['killshot_criteria_en']);
+            
+            // Special handling for killshot list items due to complex nested tags (b, strong)
+            document.querySelectorAll('#killshot-list li').forEach(li => {
+                const key = li.getAttribute('data-key');
+                if (LANG_DATA[lang][key]) {
+                    // This uses a simplified, targeted application of math styles only to the required variables within the text
+                    const processedText = LANG_DATA[lang][key]
+                        .replace(/\\lambda/g, 'λ')
+                        .replace(/L_{\\rm bol}/g, '<span class="math-variable">L<sub>bol</sub></span>')
+                        .replace(/a_{*}/g, '<span class="math-variable">a<sub>*</sub></span>');
+                    li.innerHTML = processedText;
+                }
+            });
+
+
             if (callback) {
                  setTimeout(callback, 50);
             }
@@ -680,6 +723,8 @@
             const step3Text = document.getElementById('step-3-text');
             const validationTargetJa = document.getElementById('validation-target-ja');
             const validationTargetEn = document.getElementById('validation-target-en');
+            const killshotCriteriaJa = document.getElementById('killshot-criteria-ja');
+            const killshotCriteriaEn = document.getElementById('killshot-criteria-en');
 
 
             // 1. DOM elements (data-key) and Math Rendering
@@ -704,6 +749,10 @@
                 if (validationTargetJa && validationTargetEn) {
                     validationTargetJa.classList.toggle('hidden', lang === 'en');
                     validationTargetEn.classList.toggle('hidden', lang === 'ja');
+                }
+                if (killshotCriteriaJa && killshotCriteriaEn) {
+                    killshotCriteriaJa.classList.toggle('hidden', lang === 'en');
+                    killshotCriteriaEn.classList.toggle('hidden', lang === 'ja');
                 }
 
                 // 4. Update dynamic content (sliders, chart)
