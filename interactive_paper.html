@@ -109,7 +109,7 @@
             <h1 class="text-3xl md:text-5xl font-bold text-white mb-2" data-key="title">自己維持ペンローズ励起モデル</h1>
             <p class="text-lg md:text-xl text-sky-300" data-key="subtitle">クエーサーの超エディントン光度を説明する新理論</p>
             <p class="mt-2 max-w-3xl mx-auto text-gray-500 text-sm italic">
-                <span data-key="version_label">Version</span> v1.1.1 &mdash; <span data-key="covenant_header">Independent researcher &mdash; AI-assisted, human-responsible. Testing left to domain teams.</span>
+                <span data-key="version_label">Version</span> v1.1.2 &mdash; <span data-key="covenant_header">Independent researcher &mdash; AI-assisted, human-responsible. Testing left to domain teams.</span>
             </p>
         </header>
 
@@ -246,7 +246,7 @@
                 <h2 class="text-2xl md:text-3xl font-bold text-white mb-6 text-center" data-key="sec5_title">4. 検証の設計図：Hooks & Kill-shots</h2>
                 <div class="glass-card rounded-lg p-6 md:p-8 hook-box pl-6">
                     <h3 class="text-white font-bold mb-4 text-xl" data-key="hook_box_title">観測フック / 反証条件 (Hooks & Kill-shots)</h3>
-                    <p id="validation-target" class="text-gray-400 text-sm mb-3" data-key="validation_target_ja">
+                    <p id="validation-target-ja" class="text-gray-400 text-sm mb-3" data-key="validation_target_ja">
                         対象は <b>高スピン</b> ($a_{*} > a_{\rm th}$) かつ <b>高Edd比</b> ($\lambda$高)・透明条件 $\ell \lesssim 30$。
                     </p>
                     <p id="validation-target-en" class="text-gray-400 text-sm mb-3 hidden" data-key="validation_target_en">
@@ -255,7 +255,7 @@
                     <ul class="list-disc list-inside text-gray-300 text-sm leading-6 space-y-1">
                         <li>
                             <b class="text-yellow-400" data-key="hook_title">Hook（支持）:</b> 
-                            <span data-key="hook_content">Fe K$\alpha$/UVラグの<strong>エネルギー依存</strong>、偏光度・方位の<strong>スピン依存</strong>、EUV/MeV域の<strong>肩</strong>の検出。</span>
+                            <span data-key="hook_content">Fe K$\alpha$/UVラグのエネルギー依存、偏光度・方位のスピン依存、EUV/MeV域の肩の検出。</span>
                         </li>
                         <li class="mt-4">
                             <b class="text-red-400" data-key="killshot_title">Kill-shot（棄却）:</b>
@@ -371,7 +371,7 @@
                 'hook_box_title': '観測フック / 反証条件 (Hooks & Kill-shots)',
                 'validation_target_ja': '対象は <b>高スピン</b> ($a_{*} > a_{\\rm th}$) かつ <b>高Edd比</b> ($\\lambda$高)・透明条件 $\\ell \\lesssim 30$。',
                 'hook_title': 'Hook（支持）:',
-                'hook_content': 'Fe K$\\alpha$/UVラグの<strong>エネルギー依存</strong>、偏光度・方位の<strong>スピン依存</strong>、EUV/MeV域の<strong>肩</strong>の検出。',
+                'hook_content': 'Fe K$\\alpha$/UVラグのエネルギー依存、偏光度・方位のスピン依存、EUV/MeV域の肩の検出。',
                 'killshot_title': 'Kill-shot（棄却）:',
                 'killshot_1': '高スピン・高$\\lambda$サンプルで <b>MeV肩が恒常的に不在</b>。',
                 'killshot_2': 'X→UVラグに <b>エネルギー依存が見られない</b>。',
@@ -441,7 +441,7 @@
                 'hook_box_title': 'Hooks & Kill-shots',
                 'validation_target_en': 'Target sample: <b>high spin</b> ($a_{*} > a_{\\rm th}$), <b>high Eddington ratio</b> ($\\lambda$ high), transparency $\\ell \\lesssim 30$.',
                 'hook_title': 'Hook:',
-                'hook_content': 'energy-dependent Fe K$\\alpha$/UV lags; spin-dependent polarization degree/angle; EUV/MeV <strong>shoulder</strong>.',
+                'hook_content': 'energy-dependent Fe K$\\alpha$/UV lags; spin-dependent polarization degree/angle; EUV/MeV shoulder.',
                 'killshot_title': 'Kill-shots:',
                 'killshot_1': 'Persistent absence of a MeV shoulder in high-spin, high-$\\lambda$ objects.',
                 'killshot_2': 'No energy dependence in the X→UV lag.',
@@ -523,7 +523,7 @@
             });
             
             // Handle static validation content (which uses mixed HTML tags)
-            const validationTargetJa = document.getElementById('validation-target');
+            const validationTargetJa = document.getElementById('validation-target-ja');
             const validationTargetEn = document.getElementById('validation-target-en');
             
             if (validationTargetJa) validationTargetJa.innerHTML = applyMathStyles(LANG_DATA['ja']['validation_target_ja']);
@@ -678,7 +678,7 @@
             const step1Text = document.getElementById('step-1-text');
             const step2Text = document.getElementById('step-2-text');
             const step3Text = document.getElementById('step-3-text');
-            const validationTargetJa = document.getElementById('validation-target');
+            const validationTargetJa = document.getElementById('validation-target-ja');
             const validationTargetEn = document.getElementById('validation-target-en');
 
 
