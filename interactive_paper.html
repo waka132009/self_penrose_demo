@@ -722,7 +722,8 @@
                 langToggleEn.classList.toggle('text-gray-400', lang === 'ja');
 
                 // 4. Update dynamic content (sliders, chart)
-                updateLuminosityDisplay();
+                // updateLuminosityDisplay() will call updateChart()
+                updateLuminosityDisplay(); 
                 resetAnimation(); 
 
                 // 5. Re-render LaTeX content after text update
@@ -770,10 +771,10 @@
             }
 
             // Initial setup
-            // Note: switchLanguage calls renderMath()
+            // 1. Set the correct language and render math/text
             switchLanguage(currentLang);
             
-            // CRITICAL FIX: Explicitly call updateLuminosityDisplay() once the page and chart are ready.
+            // 2. CRITICAL FIX: Explicitly call updateLuminosityDisplay() after initialization.
             // This ensures the chart is populated with data immediately on load.
             updateLuminosityDisplay(); 
 
