@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-key="title">自己ペンローズ過程によるBHの高輝度説明モデル</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Cosmic Neutrals (Dark Theme) -->
+    <!-- Application Structure Plan: 論文の複雑な概念を段階的に理解させるため、テーマ別のセクション構造を採用。まず「序論」で問題提起し、「核心メカニズム」でインタラクティブな図解を用いて視覚的に解説（今回、マウスオーバーだけでなく、アニメーションも追加）。次に「インタラクティブ・シミュレータ」でユーザーがパラメータを操作してモデルの挙動を能動的に探求できるようにし、最後に「結論と意義」でモデルの重要性をまとめる。 -->
+    <!-- Visualization & Content Choices: 1. [論文Fig 1: メカニズムの模式図] -> Goal: 複雑な物理過程の空間的関係と動的プロセスを直感的に理解させる -> Viz: HTML/CSSによるインタラクティブ図解 + JSアニメーション -> Interaction: 図の要素にマウスオーバーで説明を表示。さらに、JSで分裂/落下/放出のアニメーションを実行し、エネルギー抽出の動きを視覚的に解説。これにより、静的な図よりも動的なメカニズムを深く理解できる。 -> Library: Vanilla JS + Tailwind CSS. 2. [論文Fig 2-3: パラメータと光度の関係] -> Goal: モデルの主要パラメータ（スピン、結合効率）が結果（光度）にどう影響するかを定量的に探求させる -> Viz: Chart.jsによる動的線グラフ -> Interaction: ユーザーがスライダーでパラメータを調整すると、光度のグラフがリアルタイムで更新される。 -> Library: Chart.js (Canvas). -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Inter', 'Noto Sans JP', sans-serif;
+            background-color: #111827;
+            color: #d1d5db;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 400px;
+            max-height: 50vh;
+        }
+        .glass-card {
+            background: rgba(31, 41, 55, 0.5);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .nav-link {
+            transition: all 0.2s ease-in-out;
+            cursor: pointer;
+        }
+        .nav-link:hover, .nav-link.active {
+            color: #38bdf8;
+            border-bottom: 2px solid #38bdf8;
+        }
+        .interactive-diagram-element {
+            transition: all 0.3s ease-in-out;
+            cursor: pointer;
+        }
+        .interactive-diagram-element:hover {
+            transform: scale(1.05);
+            filter: drop-shadow(0 0 15px rgba(56, 189, 248, 0.7));
+        }
+        /* Penrose Animation Elements */
+        .plasmoid {
+            width: 10px;
+            height: 10px;
+            background-color: #facc15;
+            border-radius: 50%;
+            position: absolute;
+            transition: all 0.5s ease-out;
+            opacity: 0;
+            transform: translate(-50%, -50%);
+        }
+        .plasmoid.negative {
+            background-color: #ef4444; /* Negative energy particle: Red */
+            z-index: 50;
+        }
+        .plasmoid.positive {
+            background-color: #34d399; /* Positive energy beam: Green */
+            z-index: 50;
+        }
+        .beam {
+            position: absolute;
+            width: 4px;
+            height: 0;
+            background-color: #34d399;
+            opacity: 0;
+            transition: opacity 0.5s, height 1s;
+            transform-origin: top;
+            z-index: 40;
+        }
+    </style>
+</head>
+<body class="antialiased">
+    <div class="container mx-auto px-4 py-8">
+
+        <div class="flex justify-end mb-4">
+            <button id="lang-toggle-ja" class="font-bold py-1 px-3 rounded-l-lg transition-colors text-white bg-sky-600 hover:bg-sky-500">JP</button>
+            <button id="lang-toggle-en" class="font-bold py-1 px-3 rounded-r-lg transition-colors text-gray-400 bg-gray-700 hover:bg-gray-600">EN</button>
+        </div>
+
+        <header class="text-center mb-12 md:mb-16">
+            <h1 class="text-3xl md:text-5xl font-bold text-white mb-2" data-key="title">自己維持ペンローズ励起モデル</h1>
+            <p class="text-lg md:text-xl text-sky-300" data-key="subtitle">クエーサーの超エディントン光度を説明する新理論</p>
+            <p class="mt-4 max-w-3xl mx-auto text-gray-400" data-key="author_note">Jun Wakabayashi氏による論文の核心をインタラクティブに探る</p>
+        </header>
+        
+        <nav class="sticky top-0 z-10 glass-card rounded-lg mb-12">
+            <ul class="flex items-center justify-center p-2 space-x-4 md:space-x-8 text-sm md:text-base font-medium text-gray-300">
+                <li><a class="nav-link active" data-target="introduction" data-key="nav_intro">序論</a></li>
+                <li><a class="nav-link" data-target="mechanism" data-key="nav_mech">核心メカニズム</a></li>
+                <li><a class="nav-link" data-target="simulator" data-target="simulator" data-key="nav_sim">シミュレータ</a></li>
+                <li><a class="nav-link" data-target="conclusion" data-key="nav_conc">結論と意義</a></li>
+            </ul>
+        </nav>
+
+        <main>
+            <section id="introduction" class="mb-16 scroll-mt-24">
+                <h2 class="text-2xl md:text-3xl font-bold text-white mb-6 text-center" data-key="sec1_title">1. 現代宇宙物理学の謎：クエーサーの異常な輝き</h2>
+                <div class="glass-card rounded-lg p-6 md:p-8">
+                    <p class="mb-4 text-base md:text-lg leading-relaxed" data-key="sec1_p1">クエーサーは、その中心にある超大質量ブラックホール(SMBH)の重力エネルギーをエネルギー源として輝く、宇宙で最も明るい天体の一つです。しかし、多くのクエーサーは、従来の理論が予測する明るさの限界（エディントン限界）を数倍から10倍も超える光度で観測されています。これは、ブラックホールへの物質の降着メカニズムに関する我々の理解に、大きな疑問を投げかけています。</p>
+                    <div class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6 text-center">
+                        <div class="border border-yellow-500/30 rounded-lg p-4">
+                            <h3 class="font-bold text-yellow-300 text-lg" data-key="edd_limit_title">理論的限界 (エディントン限界)</h3>
+                            <p class="text-2xl font-mono mt-2">~1 L<sub>Edd</sub></p>
+                            <p class="text-sm text-gray-400 mt-1" data-key="edd_limit_desc">ブラックホールの重力と光の放射圧が釣り合う明るさ。これを超えると、降着するガスが吹き飛ばされるはず。</p>
+                        </div>
+                        <div class="border border-red-500/30 rounded-lg p-4">
+                            <h3 class="font-bold text-red-300 text-lg" data-key="obs_lum_title">観測される光度</h3>
+                            <p class="text-2xl font-mono mt-2">2-10 L<sub>Edd</sub></p>
+                            <p class="text-sm text-gray-400 mt-1" data-key="obs_lum_desc">多くのクエーサーが理論限界を大幅に超える。この超過エネルギーはどこから来るのか？</p>
+                        </div>
+                    </div>
+                     <p class="mt-6 text-base md:text-lg leading-relaxed" data-key="sec1_p2">本論文で提案されている「自己維持ペンローズ励起」モデルは、この謎に対する新しい答えを提示します。ブラックホールの回転エネルギーを直接抽出し、降着円盤のエネルギーに変換することで、エディントン限界を超える高輝度を説明する、画期的なメカニズムです。</p>
+                </div>
+            </section>
+
+            <section id="mechanism" class="mb-16 scroll-mt-24">
+                <h2 class="text-2xl md:text-3xl font-bold text-white mb-6 text-center" data-key="sec2_title">2. 核心メカニズム：ブラックホールの回転からエネルギーを盗む</h2>
+                <p class="text-center max-w-3xl mx-auto mb-8 text-gray-400" data-key="sec2_p_intro">このモデルの中心は、ブラックホールの事象の地平面のすぐ外側にある「エルゴ領域」で起こる特殊な現象です。ここでは、時空そのものがブラックホールの回転に引きずられています。この領域を利用して、エネルギーを抽出するプロセスを図解します。下の図の**「アニメーション実行」**ボタンを押して、エネルギー抽出の動きをご覧ください。</p>
+                <div class="glass-card rounded-lg p-4 md:p-8 flex flex-col lg:flex-row items-center gap-8">
+                    <div class="w-full lg:w-1/2 h-[450px] relative flex items-center justify-center">
+                        <div id="diagram-container" class="relative w-full h-full flex items-center justify-center">
+                            <!-- アニメーション要素のコンテナ -->
+                            <div id="animation-stage" class="relative w-[30rem] h-[30rem] flex items-center justify-center">
+                                <!-- アニメーション要素 -->
+                                <div id="plasmoid-initial" class="plasmoid" style="left: 65%; top: 50%; opacity: 1; background-color: #facc15;"></div>
+                                <div id="plasmoid-neg" class="plasmoid negative" style="left: 65%; top: 50%;"></div>
+                                <div id="plasmoid-pos" class="plasmoid positive" style="left: 65%; top: 50%;"></div>
+                                <div id="energy-beam" class="beam" style="left: 65%; top: 50%;"></div>
+                                
+                                <!-- 静的要素 -->
+                                <div id="diagram-bh" class="interactive-diagram-element absolute w-24 h-24 bg-black rounded-full z-10 flex items-center justify-center text-white text-sm" data-key="diag_bh" data-text-ja="ブラックホール(BH): 中心にある超大質量天体。ここでは極限まで高速回転 (a*→1) していることが鍵となる。" data-text-en="Black Hole (BH): The central supermassive object. Crucially, it must be rotating near the maximum limit (a*→1).">BH</div>
+                                <div id="diagram-ergosphere" class="interactive-diagram-element absolute w-56 h-56 border-2 border-dashed border-sky-400 rounded-full animate-spin [animation-duration:20s]" data-key="diag_ergo" data-text-ja="エルゴ領域: 回転するBHの時空が引きずられる領域。この中では静止していることは不可能。ペンローズ過程の舞台となる。" data-text-en="Ergosphere: A region where spacetime itself is dragged by the rotating BH. Stationary observers are impossible here. The stage for the Penrose process."></div>
+                                <div id="diagram-isco" class="interactive-diagram-element absolute w-72 h-72 border-2 border-dotted border-yellow-400 rounded-full" data-key="diag_isco" data-text-ja="最内安定円軌道(ISCO): 物質が安定して周回できる最も内側の軌道。この内側では物質はBHに落ち込むしかない。" data-text-en="Innermost Stable Circular Orbit (ISCO): The smallest radius where matter can orbit stably. Inside this, matter inevitably falls into the BH."></div>
+                                <div id="diagram-disk" class="interactive-diagram-element absolute w-96 h-96 border-t-8 border-t-orange-500/50 rounded-full animate-spin [animation-duration:30s]" data-key="diag_disk" data-text-ja="降着円盤: BHの周りを公転するガスや塵の円盤。物質が落下する際の摩擦熱で輝くが、通常はエディントン限界を超えることはない。" data-text-en="Accretion Disk: A disc of gas/dust orbiting the BH, shining from frictional heat. Typically doesn't exceed the Eddington limit from standard accretion."></div>
+                                <div class="absolute text-sky-400 -translate-y-24 text-xs font-bold uppercase tracking-widest" data-key="diag_ergo_label">エルゴ領域</div>
+                                <div class="absolute text-yellow-400 translate-y-32 text-xs font-bold uppercase tracking-widest" data-key="diag_isco_label">ISCO</div>
+                                <div class="absolute text-orange-400 -translate-y-44 text-xs font-bold uppercase tracking-widest" data-key="diag_disk_label">降着円盤</div>
+                            </div>
+                            <div class="absolute bottom-0">
+                                <button id="start-animation" class="bg-sky-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-sky-500 transition-colors" data-key="start_animation">アニメーション実行</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="w-full lg:w-1/2 p-4 min-h-[300px] bg-gray-900/50 rounded-lg">
+                        <h3 class="font-bold text-white text-lg mb-2" data-key="explanation_title">解説とアニメーションステップ</h3>
+                        <p id="diagram-text" class="text-gray-300 transition-opacity duration-300" data-key="explanation_hover">アニメーションを実行するか、図の要素にマウスカーソルを合わせてください。</p>
+                        <div id="animation-steps" class="mt-4 space-y-2">
+                             <p id="step-1-text" class="text-yellow-400 font-bold hidden"></p>
+                             <p id="step-2-text" class="text-red-400 font-bold hidden"></p>
+                             <p id="step-3-text" class="text-green-400 font-bold hidden"></p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="simulator" class="mb-16 scroll-mt-24">
+                <h2 class="text-2xl md:text-3xl font-bold text-white mb-6 text-center" data-key="sec3_title">3. インタラクティブ・シミュレータ</h2>
+                <p class="text-center max-w-3xl mx-auto mb-8 text-gray-400" data-key="sec3_p_intro">このモデルの核心的なパラメータを操作して、クエーサーの光度がどのように変化するかをシミュレーションしてみましょう。ブラックホールのスピン、エネルギー変換の効率、そしてエネルギーが解放される領域の大きさが、光度にどのように影響するかをインタラクティブに探求できます。</p>
+                <div class="glass-card rounded-lg p-4 md:p-8">
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                        <div class="lg:col-span-1 space-y-6">
+                            <div>
+                                <label for="spin" class="font-medium text-white" data-key="spin_label">ブラックホール・スピン (a<sub>*</sub>)</label>
+                                <input id="spin" type="range" min="0.9" max="0.9999" step="0.0001" value="0.98" class="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer">
+                                <div class="flex justify-between text-xs text-gray-400 mt-1">
+                                    <span data-key="spin_low">高速回転 (0.9)</span>
+                                    <span id="spin-value" class="font-bold text-sky-300">0.9800</span>
+                                    <span data-key="spin_high">極限回転 (1.0)</span>
+                                </div>
+                                <p class="text-sm text-gray-400 mt-2" data-key="spin_desc">スピンが1に近づくほどエルゴ領域が広がり、エネルギー抽出効率が劇的に向上します。</p>
+                            </div>
+                            <div>
+                                <label for="coupling" class="font-medium text-white" data-key="coupling_label">結合効率 (ε<sub>coup</sub>)</label>
+                                <input id="coupling" type="range" min="0.001" max="0.1" step="0.001" value="0.01" class="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer">
+                                <div class="flex justify-between text-xs text-gray-400 mt-1">
+                                    <span data-key="coupling_low">低い (0.001)</span>
+                                    <span id="coupling-value" class="font-bold text-sky-300">0.010</span>
+                                    <span data-key="coupling_high">高い (0.1)</span>
+                                </div>
+                                <p class="text-sm text-gray-400 mt-2" data-key="coupling_desc">BHの回転エネルギーが、どれだけ効率的に円盤を加熱するエネルギーに変換されるかを示します。</p>
+                            </div>
+                            <div class="bg-gray-900/50 rounded-lg p-4 text-center">
+                                <h3 class="font-bold text-lg text-white" data-key="lum_pred_title">予測される光度</h3>
+                                <p class="text-4xl font-mono my-2 text-yellow-300"><span id="luminosity-value">2.43</span> L<sub>Edd</sub></p>
+                                <p id="luminosity-text" class="text-sm text-gray-300 h-10" data-key="lum_feedback_2_5">安定した超エディントン光度。多くのクエーサーで観測される典型的な状態です。</p>
+                            </div>
+                        </div>
+                        <div class="lg:col-span-2">
+                            <div class="chart-container">
+                                <canvas id="luminosityChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="conclusion" class="scroll-mt-24">
+                <h2 class="text-2xl md:text-3xl font-bold text-white mb-6 text-center" data-key="sec4_title">4. 結論と科学的意義</h2>
+                <div class="glass-card rounded-lg p-6 md:p-8">
+                     <p class="mb-6 text-base md:text-lg leading-relaxed" data-key="sec4_p_intro">この「自己維持ペンローズ励起」モデルは、単にクエーサーの異常光度を説明するだけでなく、ブラックホール物理学におけるいくつかの重要な示唆を与えます。</p>
+                    <ul class="space-y-4">
+                        <li class="flex items-start">
+                            <span class="text-sky-400 mr-3 mt-1">&#10003;</span>
+                            <div>
+                                <h3 class="font-bold text-white" data-key="concl_1_title">スピンの自己制御メカニズム</h3>
+                                <p class="text-gray-400" data-key="concl_1_desc">このプロセスはブラックホールから角運動量を奪うため、スピンの上昇に自然なブレーキをかけます。これは、観測されるブラックホールのスピンが理論上の最大値である a<sub>*</sub>=1 を決して超えない理由を説明する可能性があります。</p>
+                            </div>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-sky-400 mr-3 mt-1">&#10003;</span>
+                            <div>
+                                <h3 class="font-bold text-white" data-key="concl_2_title">観測による検証可能性</h3>
+                                <p class="text-gray-400" data-key="concl_2_desc">このモデルは、事象の地平線の「外側」で起こる現象に基づいています。そのため、エネルギーが解放される降着円盤の特定領域からの放射や、特徴的な時間変動などを観測することで、理論の検証が原理的に可能です。</p>
+                            </div>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-sky-400 mr-3 mt-1">&#10003;</span>
+                            <div>
+                                <h3 class="font-bold text-white" data-key="concl_3_title">新たな研究領域の開拓</h3>
+                                <p class="text-gray-400" data-key="concl_3_desc">この理論は、これまで主に理論的な興味の対象であったペンローズ過程が、現実の天体現象として重要な役割を果たしている可能性を示唆します。磁場とプラズマ物理、そして一般相対性理論が交差する、新しい研究領域を開くものです。</p>
+                            </div>
+                        </li>
+                    </ul>
+                    <div class="mt-8 text-center">
+                        <a href="https://doi.org/10.17605/OSF.IO/62GZV" target="_blank" rel="noopener noreferrer" class="inline-block bg-sky-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-sky-500 transition-colors" data-key="read_original_paper">
+                            原文論文を読む (OSF DOI)
+                        </a>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script>
+        const LANG_DATA = {
+            'ja': {
+                'title': '自己維持ペンローズ励起モデル',
+                'subtitle': 'クエーサーの超エディントン光度を説明する新理論',
+                'author_note': 'Jun Wakabayashi氏による論文の核心をインタラクティブに探る',
+                'nav_intro': '序論',
+                'nav_mech': '核心メカニズム',
+                'nav_sim': 'シミュレータ',
+                'nav_conc': '結論と意義',
+                'sec1_title': '1. 現代宇宙物理学の謎：クエーサーの異常な輝き',
+                'sec1_p1': 'クエーサーは、その中心にある超大質量ブラックホール(SMBH)の重力エネルギーをエネルギー源として輝く、宇宙で最も明るい天体の一つです。しかし、多くのクエーサーは、従来の理論が予測する明るさの限界（エディントン限界）を数倍から10倍も超える光度で観測されています。これは、ブラックホールへの物質の降着メカニズムに関する我々の理解に、大きな疑問を投げかけています。',
+                'edd_limit_title': '理論的限界 (エディントン限界)',
+                'edd_limit_desc': 'ブラックホールの重力と光の放射圧が釣り合う明るさ。これを超えると、降着するガスが吹き飛ばされるはず。',
+                'obs_lum_title': '観測される光度',
+                'obs_lum_desc': '多くのクエーサーが理論限界を大幅に超える。この超過エネルギーはどこから来るのか？',
+                'sec1_p2': '本論文で提案されている「自己維持ペンローズ励起」モデルは、この謎に対する新しい答えを提示します。ブラックホールの回転エネルギーを直接抽出し、降着円盤のエネルギーに変換することで、エディントン限界を超える高輝度を説明する、画期的なメカニズムです。',
+                'sec2_title': '2. 核心メカニズム：ブラックホールの回転からエネルギーを盗む',
+                'sec2_p_intro': 'このモデルの中心は、ブラックホールの事象の地平面のすぐ外側にある「エルゴ領域」で起こる特殊な現象です。ここでは、時空そのものがブラックホールの回転に引きずられています。この領域を利用して、エネルギーを抽出するプロセスを図解します。下の図の「アニメーション実行」ボタンを押して、エネルギー抽出の動きをご覧ください。',
+                'diag_ergo_label': 'エルゴ領域',
+                'diag_isco_label': 'ISCO',
+                'diag_disk_label': '降着円盤',
+                'explanation_title': '解説とアニメーションステップ',
+                'explanation_hover': 'アニメーションを実行するか、図の要素にマウスカーソルを合わせてください。',
+                'step1_text': 'ステップ1: プラズモイドがエルゴ領域とISCOの境界で分裂する。',
+                'step2_text': 'ステップ2: 【赤】負のエネルギーを持つ粒子がブラックホールに落下し、回転エネルギーを奪う。',
+                'step3_text': 'ステップ3: 【緑】正のエネルギーを持つビームが円盤に向けて放出され、超過光度を生み出す。',
+                'start_animation': 'アニメーション実行',
+                'sec3_title': '3. インタラクティブ・シミュレータ',
+                'sec3_p_intro': 'このモデルの核心的なパラメータを操作して、クエーサーの光度がどのように変化するかをシミュレーションしてみましょう。ブラックホールのスピン、エネルギー変換の効率、そしてエネルギーが解放される領域の大きさが、光度にどのように影響するかをインタラクティブに探求できます。',
+                'spin_label': 'ブラックホール・スピン (a*)',
+                'spin_low': '高速回転 (0.9)',
+                'spin_high': '極限回転 (1.0)',
+                'spin_desc': 'スピンが1に近づくほどエルゴ領域が広がり、エネルギー抽出効率が劇的に向上します。',
+                'coupling_label': '結合効率 (εcoup)',
+                'coupling_low': '低い (0.001)',
+                'coupling_high': '高い (0.1)',
+                'coupling_desc': 'BHの回転エネルギーが、どれだけ効率的に円盤を加熱するエネルギーに変換されるかを示します。',
+                'lum_pred_title': '予測される光度',
+                'lum_feedback_lt_2': '準エディントン光度。モデルの効果は限定的です。',
+                'lum_feedback_2_5': '安定した超エディントン光度。多くのクエーサーで観測される典型的な状態です。',
+                'lum_feedback_5_10': '非常に高い光度。一時的なフレア現象として観測される可能性があります。',
+                'lum_feedback_gt_10': '極端な光度。非常に稀な、爆発的なエネルギー解放を示唆します。',
+                'chart_y_title': '光度 (L / L_Edd)',
+                'chart_x_title': 'ブラックホール・スピン (a*)',
+                'chart_dataset_label': (eps) => `結合効率 ε=${eps}での光度`,
+                'sec4_title': '4. 結論と科学的意義',
+                'sec4_p_intro': 'この「自己維持ペンローズ励起」モデルは、単にクエーサーの異常光度を説明するだけでなく、ブラックホール物理学におけるいくつかの重要な示唆を与えます。',
+                'concl_1_title': 'スピンの自己制御メカニズム',
+                'concl_1_desc': 'このプロセスはブラックホールから角運動量を奪うため、スピンの上昇に自然なブレーキをかけます。これは、観測されるブラックホールのスピンが理論上の最大値である a*=1 を決して超えない理由を説明する可能性があります。',
+                'concl_2_title': '観測による検証可能性',
+                'concl_2_desc': 'このモデルは、事象の地平線の「外側」で起こる現象に基づいています。そのため、エネルギーが解放される降着円盤の特定領域からの放射や、特徴的な時間変動などを観測することで、理論の検証が原理的に可能です。',
+                'concl_3_title': '新たな研究領域の開拓',
+                'concl_3_desc': 'この理論は、これまで主に理論的な興味の対象であったペンローズ過程が、現実の天体現象として重要な役割を果たしている可能性を示唆します。磁場とプラズマ物理、そして一般相対性理論が交差する、新しい研究領域を開くものです。',
+                'read_original_paper': '原文論文を読む (OSF DOI)',
+            },
+            'en': {
+                'title': 'Self-Sustained Penrose Excitation Model',
+                'subtitle': 'A New Theory Explaining Super-Eddington Quasar Luminosities',
+                'author_note': 'Interactively explore the core concepts of Jun Wakabayashi\'s paper',
+                'nav_intro': 'Introduction',
+                'nav_mech': 'Core Mechanism',
+                'nav_sim': 'Simulator',
+                'nav_conc': 'Conclusion & Significance',
+                'sec1_title': '1. The Mystery of Modern Astrophysics: Quasar\'s Abnormal Luminosity',
+                'sec1_p1': 'Quasars are among the brightest objects in the universe, fueled by the gravitational energy of their central Supermassive Black Holes (SMBHs). However, many quasars are observed to shine at luminosities far exceeding the conventional theoretical limit (the Eddington limit), often by factors of two to ten. This disparity challenges our fundamental understanding of accretion physics.',
+                'edd_limit_title': 'Theoretical Limit (Eddington Limit)',
+                'edd_limit_desc': 'The luminosity where the gravitational pull of the BH balances the outward radiation pressure from the light. Exceeding this should theoretically blow away the accreting gas.',
+                'obs_lum_title': 'Observed Luminosity',
+                'obs_lum_desc': 'Many quasars significantly exceed the theoretical limit. Where does this excess energy originate?',
+                'sec1_p2': 'The "Self-Sustained Penrose Excitation" model proposed in this paper offers a novel solution to this mystery. It describes a groundbreaking mechanism that directly extracts rotational energy from the black hole and converts it into accretion disk power, explaining the super-Eddington brilliance.',
+                'sec2_title': '2. Core Mechanism: Stealing Energy from Black Hole Rotation',
+                'sec2_p_intro': 'The core of this model revolves around a special phenomenon occurring in the "Ergosphere," the region just outside the black hole\'s event horizon where spacetime is dragged by the BH\'s rotation. We illustrate the process used to extract this energy. Press the **"Run Animation"** button below to see the energy extraction process in motion.',
+                'diag_ergo_label': 'ERGOSPHERE',
+                'diag_isco_label': 'ISCO',
+                'diag_disk_label': 'ACCRETION DISK',
+                'explanation_title': 'Explanation and Animation Steps',
+                'explanation_hover': 'Run the animation or hover over the elements in the diagram.',
+                'step1_text': 'Step 1: The Plasmoid splits at the Ergosphere/ISCO boundary.',
+                'step2_text': 'Step 2: [Red] The negative-energy branch falls into the BH, extracting rotational energy.',
+                'step3_text': 'Step 3: [Green] The positive-energy beam is ejected toward the disk, generating super-Eddington luminosity.',
+                'start_animation': 'Run Animation',
+                'sec3_title': '3. Interactive Simulator',
+                'sec3_p_intro': 'Let\'s simulate how quasar luminosity changes by manipulating the core parameters of this model. Explore interactively how the black hole spin, coupling efficiency, and the effective energy dissipation region influence the resulting luminosity.',
+                'spin_label': 'Black Hole Spin (a*)',
+                'spin_low': 'Fast Rotation (0.9)',
+                'spin_high': 'Extreme Spin (1.0)',
+                'spin_desc': 'As spin approaches 1.0, the ergosphere expands, dramatically increasing the efficiency of energy extraction.',
+                'coupling_label': 'Coupling Efficiency (εcoup)',
+                'coupling_low': 'Low (0.001)',
+                'coupling_high': 'High (0.1)',
+                'coupling_desc': 'Indicates how efficiently the BH\'s rotational energy is converted into heat for the accretion disk.',
+                'lum_pred_title': 'Predicted Luminosity',
+                'lum_feedback_lt_2': 'Sub-Eddington luminosity. The model\'s effect is limited.',
+                'lum_feedback_2_5': 'Stable Super-Eddington luminosity. This is the typical state observed in many quasars.',
+                'lum_feedback_5_10': 'Very high luminosity. Potentially observable during temporary flaring episodes.',
+                'lum_feedback_gt_10': 'Extreme luminosity. Suggests a rare, explosive release of energy.',
+                'chart_y_title': 'Luminosity (L / L_Edd)',
+                'chart_x_title': 'Black Hole Spin (a*)',
+                'chart_dataset_label': (eps) => `Luminosity at coupling ε=${eps}`,
+                'sec4_title': '4. Conclusion and Scientific Significance',
+                'sec4_p_intro': 'This "Self-Sustained Penrose Excitation" model not only explains the abnormal luminosity of quasars but also provides several critical implications for black hole physics.',
+                'concl_1_title': 'Spin Self-Regulation Mechanism',
+                'concl_1_desc': 'The process extracts angular momentum from the black hole, providing a natural brake on spin increase. This could explain why observed black hole spins rarely, if ever, exceed the theoretical maximum of a*=1.',
+                'concl_2_title': 'Empirical Testability',
+                'concl_2_desc': 'The model is based on a phenomenon occurring *outside* the event horizon. Therefore, the theory is empirically testable in principle through observations of radiation and characteristic time variability from the specific disk region where energy is liberated.',
+                'concl_3_title': 'Opening New Research Domains',
+                'concl_3_desc': 'This theory suggests that the Penrose process, previously a subject of theoretical interest, may play a vital role in real astrophysical phenomena. It opens a new research domain where magnetic fields, plasma physics, and general relativity intersect.',
+                'read_original_paper': 'Read Original Paper (OSF DOI)',
+            }
+        };
+
+        const DIAGRAM_DATA = {
+            'diag_bh': {
+                'ja': 'ブラックホール(BH): 中心にある超大質量天体。ここでは極限まで高速回転 (a*→1) していることが鍵となる。',
+                'en': 'Black Hole (BH): The central supermassive object. Crucially, it must be rotating near the maximum limit (a*→1).',
+            },
+            'diag_ergo': {
+                'ja': 'エルゴ領域: 回転するBHの時空が引きずられる領域。この中では静止していることは不可能。ペンローズ過程の舞台となる。',
+                'en': 'Ergosphere: A region where spacetime itself is dragged by the rotating BH. Stationary observers are impossible here. The stage for the Penrose process.',
+            },
+            'diag_isco': {
+                'ja': '最内安定円軌道(ISCO): 物質が安定して周回できる最も内側の軌道。この内側では物質はBHに落ち込むしかない。',
+                'en': 'Innermost Stable Circular Orbit (ISCO): The smallest radius where matter can orbit stably. Inside this, matter inevitably falls into the BH.',
+            },
+            'diag_disk': {
+                'ja': '降着円盤: BHの周りを公転するガスや塵の円盤。物質が落下する際の摩擦熱で輝くが、通常はエディントン限界を超えることはない。',
+                'en': 'Accretion Disk: A disc of gas/dust orbiting the BH, shining from frictional heat. Typically doesn\'t exceed the Eddington limit from standard accretion.',
+            },
+        };
+
+        let currentLang = 'ja';
+        let luminosityChart; 
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const spinSlider = document.getElementById('spin');
+            const couplingSlider = document.getElementById('coupling');
+            const spinValue = document.getElementById('spin-value');
+            const couplingValue = document.getElementById('coupling-value');
+            const luminosityValue = document.getElementById('luminosity-value');
+            const luminosityText = document.getElementById('luminosity-text');
+            const langToggleJa = document.getElementById('lang-toggle-ja');
+            const langToggleEn = document.getElementById('lang-toggle-en');
+            const startAnimationButton = document.getElementById('start-animation');
+
+            // --- DOM Elements for Animation ---
+            const diagramElements = document.querySelectorAll('.interactive-diagram-element');
+            const diagramText = document.getElementById('diagram-text');
+            const plasmoidInitial = document.getElementById('plasmoid-initial');
+            const plasmoidNeg = document.getElementById('plasmoid-neg');
+            const plasmoidPos = document.getElementById('plasmoid-pos');
+            const energyBeam = document.getElementById('energy-beam');
+            const step1Text = document.getElementById('step-1-text');
+            const step2Text = document.getElementById('step-2-text');
+            const step3Text = document.getElementById('step-3-text');
+
+            const ctx = document.getElementById('luminosityChart').getContext('2d');
+            
+            Chart.defaults.color = '#9ca3af';
+            Chart.defaults.borderColor = 'rgba(156, 163, 175, 0.1)';
+
+            luminosityChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: [], 
+                    datasets: [{
+                        label: '', 
+                        data: [], 
+                        borderColor: '#facc15',
+                        backgroundColor: 'rgba(250, 204, 21, 0.1)',
+                        borderWidth: 2,
+                        pointRadius: 0,
+                        tension: 0.4,
+                        fill: true,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: LANG_DATA[currentLang].chart_x_title,
+                                font: { size: 14 }
+                            },
+                            min: 0.9,
+                            max: 1.0,
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: LANG_DATA[currentLang].chart_y_title,
+                                font: { size: 14 }
+                            },
+                            beginAtZero: true,
+                            suggestedMax: 12
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            enabled: true,
+                            mode: 'index',
+                            intersect: false,
+                        }
+                    }
+                }
+            });
+
+            function calculateLuminosity(a_star, epsilon_coup) {
+                // Phenomenological model: Lum ~ epsilon * (1/(1-a*))^0.5
+                const spin_factor = Math.pow(1 / (1 - a_star), 0.5); 
+                const base_lum = 15; 
+                let lum = base_lum * epsilon_coup * spin_factor;
+                return Math.min(Math.max(lum, 0), 50); 
+            }
+
+            function updateLuminosityDisplay() {
+                const a_star = parseFloat(spinSlider.value);
+                const epsilon_coup = parseFloat(couplingSlider.value);
+
+                spinValue.textContent = a_star.toFixed(4);
+                couplingValue.textContent = epsilon_coup.toFixed(3);
+
+                const lum = calculateLuminosity(a_star, epsilon_coup);
+                luminosityValue.textContent = lum.toFixed(2);
+
+                let feedbackKey;
+                if (lum < 2) {
+                    feedbackKey = 'lum_feedback_lt_2';
+                } else if (lum <= 5) {
+                    feedbackKey = 'lum_feedback_2_5';
+                } else if (lum <= 10) {
+                    feedbackKey = 'lum_feedback_5_10';
+                } else {
+                    feedbackKey = 'lum_feedback_gt_10';
+                }
+                luminosityText.textContent = LANG_DATA[currentLang][feedbackKey];
+                
+                updateChart(epsilon_coup);
+            }
+            
+            function updateChart(current_epsilon_coup) {
+                const labels = [];
+                const data = [];
+                for (let a = 0.9; a < 1.0; a += 0.001) {
+                    labels.push(a.toFixed(3));
+                    data.push(calculateLuminosity(a, current_epsilon_coup));
+                }
+                luminosityChart.data.labels = labels;
+                const eps_display = current_epsilon_coup.toFixed(3);
+                luminosityChart.data.datasets[0].data = data;
+                luminosityChart.data.datasets[0].label = LANG_DATA[currentLang].chart_dataset_label(eps_display);
+                
+                luminosityChart.options.scales.x.title.text = LANG_DATA[currentLang].chart_x_title;
+                luminosityChart.options.scales.y.title.text = LANG_DATA[currentLang].chart_y_title;
+                
+                luminosityChart.update('none');
+            }
+
+            function resetAnimation() {
+                plasmoidInitial.style.opacity = '1';
+                plasmoidInitial.style.transform = 'translate(-50%, -50%)';
+                
+                plasmoidNeg.style.opacity = '0';
+                plasmoidNeg.style.left = '65%';
+                plasmoidNeg.style.top = '50%';
+                
+                plasmoidPos.style.opacity = '0';
+                plasmoidPos.style.left = '65%';
+                plasmoidPos.style.top = '50%';
+                
+                energyBeam.style.opacity = '0';
+                energyBeam.style.height = '0px';
+
+                step1Text.classList.add('hidden');
+                step2Text.classList.add('hidden');
+                step3Text.classList.add('hidden');
+            }
+
+            function startAnimation() {
+                resetAnimation();
+                startAnimationButton.disabled = true;
+                diagramText.textContent = LANG_DATA[currentLang].step1_text;
+                step1Text.textContent = LANG_DATA[currentLang].step1_text;
+                step1Text.classList.remove('hidden');
+
+                setTimeout(() => {
+                    // Step 1: Split
+                    plasmoidInitial.style.opacity = '0';
+                    plasmoidNeg.style.opacity = '1';
+                    plasmoidPos.style.opacity = '1';
+
+                    diagramText.textContent = LANG_DATA[currentLang].step2_text;
+                    step2Text.textContent = LANG_DATA[currentLang].step2_text;
+                    step2Text.classList.remove('hidden');
+                    step1Text.classList.add('opacity-50');
+
+                    // Step 2: Negative Energy falls into BH (towards center, smaller radius)
+                    plasmoidNeg.style.left = '50%';
+                    plasmoidNeg.style.top = '50%';
+                    plasmoidNeg.style.transform = 'scale(0.5) translate(-50%, -50%)';
+
+                    // Step 3: Positive Energy moves outward (Beam launch)
+                    setTimeout(() => {
+                        diagramText.textContent = LANG_DATA[currentLang].step3_text;
+                        step3Text.textContent = LANG_DATA[currentLang].step3_text;
+                        step3Text.classList.remove('hidden');
+                        step2Text.classList.add('opacity-50');
+
+                        // Move the positive plasmoid slightly for beam anchor
+                        plasmoidPos.style.left = '68%';
+                        
+                        // Start the beam animation
+                        energyBeam.style.left = '68%';
+                        energyBeam.style.top = '50%';
+                        energyBeam.style.opacity = '1';
+                        energyBeam.style.height = '150px'; // Extend beam outwards
+
+                        // Hide the positive plasmoid (it becomes the beam source)
+                        plasmoidPos.style.opacity = '0';
+
+                        // Final cleanup
+                        setTimeout(() => {
+                            startAnimationButton.disabled = false;
+                            diagramText.textContent = LANG_DATA[currentLang].explanation_hover;
+                            step1Text.classList.remove('opacity-50');
+                            step2Text.classList.remove('opacity-50');
+                        }, 1500);
+
+                    }, 1000); // Wait 1 second after split
+                }, 1000); // Wait 1 second before split
+            }
+
+            function switchLanguage(lang) {
+                currentLang = lang;
+                
+                // 1. DOM elements (data-key)
+                document.querySelectorAll('[data-key]').forEach(el => {
+                    const key = el.getAttribute('data-key');
+                    if (LANG_DATA[lang][key]) {
+                        if (typeof LANG_DATA[lang][key] === 'function') {
+                            // Skip functions here
+                        } else {
+                            el.textContent = LANG_DATA[lang][key];
+                        }
+                    }
+                });
+                
+                // 2. Diagram descriptions (data-text-lang)
+                const defaultHoverTextKey = 'explanation_hover';
+                diagramText.textContent = LANG_DATA[currentLang][defaultHoverTextKey];
+                
+                diagramElements.forEach(el => {
+                    const key = el.getAttribute('data-key');
+                    // data-text attributes are set in HTML, just ensure they are available
+                    el.setAttribute(`data-text-${lang}`, DIAGRAM_DATA[key][lang]); 
+                });
+
+                // Update animation step texts
+                step1Text.textContent = LANG_DATA[currentLang].step1_text;
+                step2Text.textContent = LANG_DATA[currentLang].step2_text;
+                step3Text.textContent = LANG_DATA[currentLang].step3_text;
+
+
+                // 3. Update active button style
+                langToggleJa.classList.toggle('bg-sky-600', lang === 'ja');
+                langToggleJa.classList.toggle('text-white', lang === 'ja');
+                langToggleJa.classList.toggle('bg-gray-700', lang === 'en');
+                langToggleJa.classList.toggle('text-gray-400', lang === 'en');
+
+                langToggleEn.classList.toggle('bg-sky-600', lang === 'en');
+                langToggleEn.classList.toggle('text-white', lang === 'en');
+                langToggleEn.classList.toggle('bg-gray-700', lang === 'ja');
+                langToggleEn.classList.toggle('text-gray-400', lang === 'ja');
+
+                // 4. Update dynamic content (sliders, chart)
+                updateLuminosityDisplay();
+                resetAnimation(); // Reset animation to default state in the new language
+            }
+
+            // Initial setup
+            switchLanguage(currentLang);
+
+            spinSlider.addEventListener('input', updateLuminosityDisplay);
+            couplingSlider.addEventListener('input', updateLuminosityDisplay);
+
+            langToggleJa.addEventListener('click', () => switchLanguage('ja'));
+            langToggleEn.addEventListener('click', () => switchLanguage('en'));
+            
+            startAnimationButton.addEventListener('click', startAnimation);
+            
+            resetAnimation(); // Initial reset to ensure clean start
+            
+            // --- Interactive Diagram Logic ---
+            diagramElements.forEach(el => {
+                el.addEventListener('mouseenter', () => {
+                    if (startAnimationButton.disabled) return; // Prevent hover text during animation
+
+                    const textKey = el.getAttribute('data-key');
+                    const hoverText = DIAGRAM_DATA[textKey][currentLang];
+                    diagramText.style.opacity = '0';
+                    setTimeout(() => {
+                        diagramText.textContent = hoverText;
+                        diagramText.style.opacity = '1';
+                    }, 150);
+                });
+                el.addEventListener('mouseleave', () => {
+                    if (startAnimationButton.disabled) return; // Prevent hover text during animation
+                    
+                    const defaultHoverTextKey = 'explanation_hover';
+                    diagramText.style.opacity = '0';
+                     setTimeout(() => {
+                        diagramText.textContent = LANG_DATA[currentLang][defaultHoverTextKey];
+                        diagramText.style.opacity = '1';
+                    }, 150);
+                });
+            });
+            // --- Navigation Logic ---
+            const navLinks = document.querySelectorAll('.nav-link');
+            const sections = document.querySelectorAll('main section');
+
+            navLinks.forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    document.getElementById(link.dataset.target).scrollIntoView({
+                        behavior: 'smooth'
+                    });
+                });
+            });
+            
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        navLinks.forEach(link => {
+                            link.classList.toggle('active', link.dataset.target === entry.target.id);
+                        });
+                    }
+                });
+            }, { rootMargin: "-50% 0px -50% 0px" });
+
+            sections.forEach(section => {
+                observer.observe(section);
+            });
+        });
+    </script>
+</body>
+</html>
