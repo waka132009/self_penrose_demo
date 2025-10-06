@@ -522,7 +522,7 @@
                         x: {
                             title: {
                                 display: true,
-                                text: LANG_DATA[currentLang].chart_x_title,
+                                text: '', // Initial empty text, set later by switchLanguage
                                 font: { size: 14 }
                             },
                             min: 0.9,
@@ -531,7 +531,7 @@
                         y: {
                             title: {
                                 display: true,
-                                text: LANG_DATA[currentLang].chart_y_title,
+                                text: '', // Initial empty text, set later by switchLanguage
                                 font: { size: 14 }
                             },
                             beginAtZero: true,
@@ -553,9 +553,11 @@
 
             function calculateLuminosity(a_star, epsilon_coup) {
                 // Phenomenological model: Lum ~ epsilon * (1/(1-a*))^0.5
+                // The factor (1 - a*)^-0.5 is the steep spin dependence near a*=1
                 const spin_factor = Math.pow(1 / (1 - a_star), 0.5); 
-                const base_lum = 15; 
+                const base_lum = 15; // Arbitrary scaling factor for illustration
                 let lum = base_lum * epsilon_coup * spin_factor;
+                // Cap the illustrative luminosity to prevent extreme values from distorting the chart scale too much
                 return Math.min(Math.max(lum, 0), 50); 
             }
 
@@ -587,21 +589,33 @@
             function updateChart(current_epsilon_coup) {
                 const labels = [];
                 const data = [];
-                for (let a = 0.9; a < 1.0; a += 0.001) {
-                    labels.push(a.toFixed(3));
+                // Generate 100 points for a smooth curve between 0.9 and 0.9999
+                const min_a = 0.9;
+                const max_a = 0.9999;
+                const steps = 100;
+                const step_size = (max_a - min_a) / steps;
+
+                for (let i = 0; i <= steps; i++) {
+                    let a = min_a + i * step_size;
+                    // Clamp 'a' exactly at max_a for the last step
+                    if (i === steps) a = max_a;
+
+                    labels.push(a.toFixed(4));
                     data.push(calculateLuminosity(a, current_epsilon_coup));
                 }
+                
                 luminosityChart.data.labels = labels;
                 const eps_display = current_epsilon_coup.toFixed(3);
                 
-                // Set Chart Label using template and remove LaTeX backslashes for Chart.js
+                // Set Chart Label (removes LaTeX backslashes for Chart.js)
                 const chartLabelTemplate = LANG_DATA[currentLang].chart_dataset_label(eps_display);
-                luminosityChart.data.datasets[0].label = chartLabelTemplate.replace(/\\\$/g, ''); 
+                luminosityChart.data.datasets[0].label = chartLabelTemplate.replace(/\\\$/g, '').replace(/_/g, ' '); 
                 
                 luminosityChart.data.datasets[0].data = data;
                 
-                luminosityChart.options.scales.x.title.text = LANG_DATA[currentLang].chart_x_title;
-                luminosityChart.options.scales.y.title.text = LANG_DATA[currentLang].chart_y_title;
+                // Update axis titles
+                luminosityChart.options.scales.x.title.text = LANG_DATA[currentLang].chart_x_title.replace(/\\\$/g, '').replace(/_/g, ' '); 
+                luminosityChart.options.scales.y.title.text = LANG_DATA[currentLang].chart_y_title.replace(/\\\$/g, '').replace(/_/g, ' ');
                 
                 luminosityChart.update('none');
             }
@@ -774,10 +788,8 @@
             // 1. Set the correct language and render math/text
             switchLanguage(currentLang);
             
-            // 2. CRITICAL FIX: Explicitly call updateLuminosityDisplay() after initialization.
-            // This ensures the chart is populated with data immediately on load.
-            updateLuminosityDisplay(); 
-
+            // 2. CRITICAL FIX: The updateLuminosityDisplay() is called within switchLanguage()
+            // to ensure it uses the correct axis titles and data. No need for a separate call here.
 
             spinSlider.addEventListener('input', updateLuminosityDisplay);
             couplingSlider.addEventListener('input', updateLuminosityDisplay);
@@ -812,7 +824,7 @@
                         diagramText.style.opacity = '1';
                     }, 150);
                 });
-            });
+            }); 
             
             // --- Navigation Logic ---
             const navLinks = document.querySelectorAll('.nav-link');
