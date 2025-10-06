@@ -103,8 +103,8 @@
         <header class="text-center mb-6 md:mb-10">
             <h1 class="text-3xl md:text-5xl font-bold text-white mb-2" data-key="title">自己維持ペンローズ励起モデル</h1>
             <p class="text-lg md:text-xl text-sky-300" data-key="subtitle">クエーサーの超エディントン光度を説明する新理論</p>
-            <p class="mt-2 max-w-3xl mx-auto text-gray-500 text-sm italic" data-key="covenant_header">
-                Independent researcher &mdash; AI-assisted, human-responsible. Testing left to domain teams.
+            <p class="mt-2 max-w-3xl mx-auto text-gray-500 text-sm italic">
+                <span data-key="version_label">Version</span> v1.0.0 &mdash; <span data-key="covenant_header">Independent researcher &mdash; AI-assisted, human-responsible. Testing left to domain teams.</span>
             </p>
         </header>
 
@@ -306,7 +306,7 @@
             'ja': {
                 'title': '自己維持ペンローズ励起モデル',
                 'subtitle': 'クエーサーの超エディントン光度を説明する新理論',
-                'author_note': 'Jun Wakabayashi氏による論文の核心をインタラクティブに探る',
+                'version_label': 'バージョン',
                 'covenant_header': 'Independent researcher — AI-assisted, human-responsible. Testing left to domain teams.',
                 'covenant_footer': 'I propose hypotheses & release reproducible packs; **testing is left to domain teams**. (検証の主導は先方に委ねます)',
                 'nav_intro': '序論',
@@ -379,7 +379,7 @@
             'en': {
                 'title': 'Self-Sustained Penrose Excitation Model',
                 'subtitle': 'A New Theory Explaining Super-Eddington Quasar Luminosities',
-                'author_note': 'Interactively explore the core concepts of Jun Wakabayashi\'s paper',
+                'version_label': 'Version',
                 'covenant_header': 'Independent researcher — AI-assisted, human-responsible. Testing left to domain teams.',
                 'covenant_footer': 'I propose hypotheses & release reproducible packs; **testing is left to domain teams**.',
                 'nav_intro': 'Introduction',
@@ -472,20 +472,218 @@
 
         let currentLang = 'ja';
         let luminosityChart; 
+        let animationTimer;
 
-        document.addEventListener('DOMContentLoaded', function() {
+        // --- MathJax Initialization (Simulated for LaTeX) ---
+        function renderMath(lang, callback) {
+            // This function iterates over all relevant elements and replaces LaTeX syntax with styled text
+            document.querySelectorAll('[data-key]').forEach(el => {
+                const key = el.getAttribute('data-key');
+                let rawText = LANG_DATA[lang][key];
+
+                if (!rawText) return;
+                
+                if (typeof rawText === 'function') {
+                    // Update dynamic label function placeholders
+                    if (key === 'chart_dataset_label') {
+                        // The function itself is defined, but the DOM content is handled elsewhere
+                        el.textContent = rawText(parseFloat(document.getElementById('coupling').value).toFixed(3));
+                    }
+                    return;
+                }
+
+                // Simulate LaTeX rendering for $...$
+                let processedHTML = rawText.replace(/\$([^\$]+)\$/g, (match, p1) => {
+                    let innerHTML = p1
+                        .replace(/\\rm /g, '')
+                        .replace(/\\times/g, '&times;')
+                        .replace(/\\cdot/g, '&middot;')
+                        .replace(/\\to/g, '&rarr;')
+                        .replace(/\\alpha/g, 'α')
+                        .replace(/\\beta/g, 'β')
+                        .replace(/\\gamma/g, 'γ')
+                        .replace(/\\lambda/g, 'λ')
+                        .replace(/\\bol/g, 'bol') 
+                        .replace(/\{/g, '')
+                        .replace(/\}/g, '')
+                        .replace(/\\/g, '')
+                        .replace(/_/g, '<sub>')
+                        .replace(/\*/g, '</sub>')
+                    ;
+                    // Use a span with serif font and italic style for math appearance
+                    return `<span style="font-family: serif; font-style: italic; white-space: nowrap;">${innerHTML}</span>`;
+                });
+
+                // Update the element's content with the processed HTML
+                el.innerHTML = processedHTML;
+            });
+
+            // Execute the callback after text rendering is complete
+            if (callback) {
+                 // Use a small timeout to ensure the DOM has updated before chart redrawing
+                 setTimeout(callback, 50);
+            }
+        }
+        
+        // --- Core Simulation Logic ---
+        function calculateLuminosity(a_star, epsilon_coup) {
+            const spin_factor = Math.pow(1 / (1 - a_star), 0.5); 
+            const base_lum = 15;
+            let lum = base_lum * epsilon_coup * spin_factor;
+            return Math.min(Math.max(lum, 0), 50); 
+        }
+
+        function updateChart(current_epsilon_coup) {
+            const labels = [];
+            const data = [];
+            const min_a = 0.9;
+            const max_a = 0.9999;
+            const steps = 100;
+            const step_size = (max_a - min_a) / steps;
+
+            for (let i = 0; i <= steps; i++) {
+                let a = min_a + i * step_size;
+                if (i === steps) a = max_a;
+
+                labels.push(a.toFixed(4));
+                data.push(calculateLuminosity(a, current_epsilon_coup));
+            }
+            
+            luminosityChart.data.labels = labels;
+            const eps_display = current_epsilon_coup.toFixed(3);
+            
+            // Set Chart Label (removes LaTeX backslashes for Chart.js)
+            const chartLabelTemplate = LANG_DATA[currentLang].chart_dataset_label(eps_display);
+            luminosityChart.data.datasets[0].label = chartLabelTemplate.replace(/\\\$/g, '').replace(/_/g, ' '); 
+            
+            luminosityChart.data.datasets[0].data = data;
+            
+            // Update axis titles (need to access the object structure directly)
+            luminosityChart.options.scales.x.title.text = LANG_DATA[currentLang].chart_x_title.replace(/\\\$/g, '').replace(/_/g, ' '); 
+            luminosityChart.options.scales.y.title.text = LANG_DATA[currentLang].chart_y_title.replace(/\\\$/g, '').replace(/_/g, ' ');
+            
+            luminosityChart.update('none');
+        }
+        
+        function updateLuminosityDisplay() {
             const spinSlider = document.getElementById('spin');
             const couplingSlider = document.getElementById('coupling');
             const spinValue = document.getElementById('spin-value');
             const couplingValue = document.getElementById('coupling-value');
             const luminosityValue = document.getElementById('luminosity-value');
             const luminosityText = document.getElementById('luminosity-text');
+
+            const a_star = parseFloat(spinSlider.value);
+            const epsilon_coup = parseFloat(couplingSlider.value);
+
+            spinValue.textContent = a_star.toFixed(4);
+            couplingValue.textContent = epsilon_coup.toFixed(3);
+
+            const lum = calculateLuminosity(a_star, epsilon_coup);
+            luminosityValue.textContent = lum.toFixed(2);
+
+            let feedbackKey;
+            if (lum < 2) {
+                feedbackKey = 'lum_feedback_lt_2';
+            } else if (lum <= 5) {
+                feedbackKey = 'lum_feedback_2_5';
+            } else if (lum <= 10) {
+                feedbackKey = 'lum_feedback_5_10';
+            } else {
+                feedbackKey = 'lum_feedback_gt_10';
+            }
+            luminosityText.textContent = LANG_DATA[currentLang][feedbackKey];
+            
+            updateChart(epsilon_coup);
+        }
+        
+        // --- Language and UI State Management ---
+        function switchLanguage(lang) {
+            currentLang = lang;
+            
             const langToggleJa = document.getElementById('lang-toggle-ja');
             const langToggleEn = document.getElementById('lang-toggle-en');
-            const startAnimationButton = document.getElementById('start-animation');
-
-            // --- DOM Elements for Animation and Content ---
             const diagramElements = document.querySelectorAll('.interactive-diagram-element');
+            const diagramText = document.getElementById('diagram-text');
+            const step1Text = document.getElementById('step-1-text');
+            const step2Text = document.getElementById('step-2-text');
+            const step3Text = document.getElementById('step-3-text');
+
+            // 1. DOM elements (data-key) and Math Rendering
+            renderMath(lang, () => {
+                // Callback function executes after renderMath is complete
+
+                // Update animation step texts (These must be updated after renderMath)
+                step1Text.textContent = LANG_DATA[currentLang].step1_text;
+                step2Text.textContent = LANG_DATA[currentLang].step2_text;
+                step3Text.textContent = LANG_DATA[currentLang].step3_text;
+
+                // 2. Diagram descriptions (data-text-lang)
+                const defaultHoverTextKey = 'explanation_hover';
+                diagramText.textContent = LANG_DATA[currentLang][defaultHoverTextKey];
+                
+                diagramElements.forEach(el => {
+                    const key = el.getAttribute('data-key');
+                    el.setAttribute(`data-text-${lang}`, DIAGRAM_DATA[key][lang]); 
+                });
+
+                // 3. Update dynamic content (sliders, chart)
+                updateLuminosityDisplay(); 
+                resetAnimation(); 
+            });
+
+            // 4. Update active button style (handled outside the renderMath callback for responsiveness)
+            langToggleJa.classList.toggle('bg-sky-600', lang === 'ja');
+            langToggleJa.classList.toggle('text-white', lang === 'ja');
+            langToggleJa.classList.toggle('bg-gray-700', lang === 'en');
+            langToggleJa.classList.toggle('text-gray-400', lang === 'en');
+
+            langToggleEn.classList.toggle('bg-sky-600', lang === 'en');
+            langToggleEn.classList.toggle('text-white', lang === 'en');
+            langToggleEn.classList.toggle('bg-gray-700', lang === 'ja');
+            langToggleEn.classList.toggle('text-gray-400', lang === 'ja');
+
+        }
+        
+        // --- Animation Logic ---
+        function resetAnimation() {
+            const startAnimationButton = document.getElementById('start-animation');
+            const plasmoidInitial = document.getElementById('plasmoid-initial');
+            const plasmoidNeg = document.getElementById('plasmoid-neg');
+            const plasmoidPos = document.getElementById('plasmoid-pos');
+            const energyBeam = document.getElementById('energy-beam');
+            const step1Text = document.getElementById('step-1-text');
+            const step2Text = document.getElementById('step-2-text');
+            const step3Text = document.getElementById('step-3-text');
+            const diagramText = document.getElementById('diagram-text');
+
+            if (animationTimer) clearTimeout(animationTimer);
+
+            plasmoidInitial.style.opacity = '1';
+            plasmoidInitial.style.transform = 'translate(-50%, -50%)';
+            
+            plasmoidNeg.style.opacity = '0';
+            plasmoidNeg.style.left = '65%';
+            plasmoidNeg.style.top = '50%';
+            
+            plasmoidPos.style.opacity = '0';
+            plasmoidPos.style.left = '65%';
+            plasmoidPos.style.top = '50%';
+            
+            energyBeam.style.opacity = '0';
+            energyBeam.style.height = '0px';
+
+            step1Text.classList.add('hidden');
+            step2Text.classList.add('hidden');
+            step3Text.classList.add('hidden');
+            
+            if (startAnimationButton) startAnimationButton.disabled = false;
+            if (diagramText) diagramText.textContent = LANG_DATA[currentLang].explanation_hover;
+        }
+
+        function startAnimation() {
+            resetAnimation();
+            const startAnimationButton = document.getElementById('start-animation');
             const diagramText = document.getElementById('diagram-text');
             const plasmoidInitial = document.getElementById('plasmoid-initial');
             const plasmoidNeg = document.getElementById('plasmoid-neg');
@@ -494,6 +692,71 @@
             const step1Text = document.getElementById('step-1-text');
             const step2Text = document.getElementById('step-2-text');
             const step3Text = document.getElementById('step-3-text');
+
+            startAnimationButton.disabled = true;
+            diagramText.textContent = LANG_DATA[currentLang].step1_text;
+            step1Text.textContent = LANG_DATA[currentLang].step1_text;
+            step1Text.classList.remove('hidden');
+
+            animationTimer = setTimeout(() => {
+                // Step 1: Split
+                plasmoidInitial.style.opacity = '0';
+                plasmoidNeg.style.opacity = '1';
+                plasmoidPos.style.opacity = '1';
+
+                diagramText.textContent = LANG_DATA[currentLang].step2_text;
+                step2Text.textContent = LANG_DATA[currentLang].step2_text;
+                step2Text.classList.remove('hidden');
+                step1Text.classList.add('opacity-50');
+
+                // Step 2: Negative Energy falls into BH
+                plasmoidNeg.style.left = '50%';
+                plasmoidNeg.style.top = '50%';
+                plasmoidNeg.style.transform = 'scale(0.5) translate(-50%, -50%)';
+
+                // Step 3: Positive Energy moves outward (Beam launch)
+                animationTimer = setTimeout(() => {
+                    diagramText.textContent = LANG_DATA[currentLang].step3_text;
+                    step3Text.textContent = LANG_DATA[currentLang].step3_text;
+                    step3Text.classList.remove('hidden');
+                    step2Text.classList.add('opacity-50');
+
+                    // Move the positive plasmoid slightly for beam anchor
+                    plasmoidPos.style.left = '68%';
+                    
+                    // Start the beam animation
+                    energyBeam.style.left = '68%';
+                    energyBeam.style.top = '50%';
+                    energyBeam.style.opacity = '1';
+                    energyBeam.style.height = '150px'; // Extend beam outwards
+
+                    // Hide the positive plasmoid (it becomes the beam source)
+                    plasmoidPos.style.opacity = '0';
+
+                    // Final cleanup
+                    animationTimer = setTimeout(() => {
+                        startAnimationButton.disabled = false;
+                        diagramText.textContent = LANG_DATA[currentLang].explanation_hover;
+                        step1Text.classList.remove('opacity-50');
+                        step2Text.classList.remove('opacity-50');
+                    }, 1500);
+
+                }, 1000); 
+
+            }, 1000); 
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const spinSlider = document.getElementById('spin');
+            const couplingSlider = document.getElementById('coupling');
+            const langToggleJa = document.getElementById('lang-toggle-ja');
+            const langToggleEn = document.getElementById('lang-toggle-en');
+            const startAnimationButton = document.getElementById('start-animation');
+            const diagramElements = document.querySelectorAll('.interactive-diagram-element');
+            const diagramText = document.getElementById('diagram-text');
+            const navLinks = document.querySelectorAll('.nav-link');
+            const sections = document.querySelectorAll('main section');
+
 
             const ctx = document.getElementById('luminosityChart').getContext('2d');
             
@@ -520,286 +783,29 @@
                     maintainAspectRatio: false,
                     scales: {
                         x: {
-                            title: {
-                                display: true,
-                                text: '', // Initial empty text, set later by switchLanguage
-                                font: { size: 14 }
-                            },
+                            title: { display: true, text: '', font: { size: 14 } },
                             min: 0.9,
                             max: 1.0,
                         },
                         y: {
-                            title: {
-                                display: true,
-                                text: '', // Initial empty text, set later by switchLanguage
-                                font: { size: 14 }
-                            },
+                            title: { display: true, text: '', font: { size: 14 } },
                             beginAtZero: true,
                             suggestedMax: 12
                         }
                     },
                     plugins: {
-                        legend: {
-                            display: false
-                        },
-                        tooltip: {
-                            enabled: true,
-                            mode: 'index',
-                            intersect: false,
-                        }
+                        legend: { display: false },
+                        tooltip: { enabled: true, mode: 'index', intersect: false }
                     }
                 }
             });
 
-            function calculateLuminosity(a_star, epsilon_coup) {
-                // Phenomenological model: Lum ~ epsilon * (1/(1-a*))^0.5
-                // The factor (1 - a*)^-0.5 is the steep spin dependence near a*=1
-                const spin_factor = Math.pow(1 / (1 - a_star), 0.5); 
-                const base_lum = 15; // Arbitrary scaling factor for illustration
-                let lum = base_lum * epsilon_coup * spin_factor;
-                // Cap the illustrative luminosity to prevent extreme values from distorting the chart scale too much
-                return Math.min(Math.max(lum, 0), 50); 
-            }
-
-            function updateLuminosityDisplay() {
-                const a_star = parseFloat(spinSlider.value);
-                const epsilon_coup = parseFloat(couplingSlider.value);
-
-                spinValue.textContent = a_star.toFixed(4);
-                couplingValue.textContent = epsilon_coup.toFixed(3);
-
-                const lum = calculateLuminosity(a_star, epsilon_coup);
-                luminosityValue.textContent = lum.toFixed(2);
-
-                let feedbackKey;
-                if (lum < 2) {
-                    feedbackKey = 'lum_feedback_lt_2';
-                } else if (lum <= 5) {
-                    feedbackKey = 'lum_feedback_2_5';
-                } else if (lum <= 10) {
-                    feedbackKey = 'lum_feedback_5_10';
-                } else {
-                    feedbackKey = 'lum_feedback_gt_10';
-                }
-                luminosityText.textContent = LANG_DATA[currentLang][feedbackKey];
-                
-                updateChart(epsilon_coup);
-            }
-            
-            function updateChart(current_epsilon_coup) {
-                const labels = [];
-                const data = [];
-                // Generate 100 points for a smooth curve between 0.9 and 0.9999
-                const min_a = 0.9;
-                const max_a = 0.9999;
-                const steps = 100;
-                const step_size = (max_a - min_a) / steps;
-
-                for (let i = 0; i <= steps; i++) {
-                    let a = min_a + i * step_size;
-                    // Clamp 'a' exactly at max_a for the last step
-                    if (i === steps) a = max_a;
-
-                    labels.push(a.toFixed(4));
-                    data.push(calculateLuminosity(a, current_epsilon_coup));
-                }
-                
-                luminosityChart.data.labels = labels;
-                const eps_display = current_epsilon_coup.toFixed(3);
-                
-                // Set Chart Label (removes LaTeX backslashes for Chart.js)
-                const chartLabelTemplate = LANG_DATA[currentLang].chart_dataset_label(eps_display);
-                luminosityChart.data.datasets[0].label = chartLabelTemplate.replace(/\\\$/g, '').replace(/_/g, ' '); 
-                
-                luminosityChart.data.datasets[0].data = data;
-                
-                // Update axis titles
-                luminosityChart.options.scales.x.title.text = LANG_DATA[currentLang].chart_x_title.replace(/\\\$/g, '').replace(/_/g, ' '); 
-                luminosityChart.options.scales.y.title.text = LANG_DATA[currentLang].chart_y_title.replace(/\\\$/g, '').replace(/_/g, ' ');
-                
-                luminosityChart.update('none');
-            }
-
-            function resetAnimation() {
-                plasmoidInitial.style.opacity = '1';
-                plasmoidInitial.style.transform = 'translate(-50%, -50%)';
-                
-                plasmoidNeg.style.opacity = '0';
-                plasmoidNeg.style.left = '65%';
-                plasmoidNeg.style.top = '50%';
-                
-                plasmoidPos.style.opacity = '0';
-                plasmoidPos.style.left = '65%';
-                plasmoidPos.style.top = '50%';
-                
-                energyBeam.style.opacity = '0';
-                energyBeam.style.height = '0px';
-
-                step1Text.classList.add('hidden');
-                step2Text.classList.add('hidden');
-                step3Text.classList.add('hidden');
-            }
-
-            function startAnimation() {
-                resetAnimation();
-                startAnimationButton.disabled = true;
-                diagramText.textContent = LANG_DATA[currentLang].step1_text;
-                step1Text.textContent = LANG_DATA[currentLang].step1_text;
-                step1Text.classList.remove('hidden');
-
-                setTimeout(() => {
-                    // Step 1: Split
-                    plasmoidInitial.style.opacity = '0';
-                    plasmoidNeg.style.opacity = '1';
-                    plasmoidPos.style.opacity = '1';
-
-                    diagramText.textContent = LANG_DATA[currentLang].step2_text;
-                    step2Text.textContent = LANG_DATA[currentLang].step2_text;
-                    step2Text.classList.remove('hidden');
-                    step1Text.classList.add('opacity-50');
-
-                    // Step 2: Negative Energy falls into BH (towards center, smaller radius)
-                    plasmoidNeg.style.left = '50%';
-                    plasmoidNeg.style.top = '50%';
-                    plasmoidNeg.style.transform = 'scale(0.5) translate(-50%, -50%)';
-
-                    // Step 3: Positive Energy moves outward (Beam launch)
-                    setTimeout(() => {
-                        diagramText.textContent = LANG_DATA[currentLang].step3_text;
-                        step3Text.textContent = LANG_DATA[currentLang].step3_text;
-                        step3Text.classList.remove('hidden');
-                        step2Text.classList.add('opacity-50');
-
-                        // Move the positive plasmoid slightly for beam anchor
-                        plasmoidPos.style.left = '68%';
-                        
-                        // Start the beam animation
-                        energyBeam.style.left = '68%';
-                        energyBeam.style.top = '50%';
-                        energyBeam.style.opacity = '1';
-                        energyBeam.style.height = '150px'; // Extend beam outwards
-
-                        // Hide the positive plasmoid (it becomes the beam source)
-                        plasmoidPos.style.opacity = '0';
-
-                        // Final cleanup
-                        setTimeout(() => {
-                            startAnimationButton.disabled = false;
-                            diagramText.textContent = LANG_DATA[currentLang].explanation_hover;
-                            step1Text.classList.remove('opacity-50');
-                            step2Text.classList.remove('opacity-50');
-                        }, 1500);
-
-                    }, 1000); // Wait 1 second after split
-                }, 1000); // Wait 1 second before split
-            }
-
-            function switchLanguage(lang) {
-                currentLang = lang;
-                
-                // 1. DOM elements (data-key)
-                document.querySelectorAll('[data-key]').forEach(el => {
-                    const key = el.getAttribute('data-key');
-                    if (LANG_DATA[lang][key]) {
-                        if (typeof LANG_DATA[lang][key] === 'function') {
-                            // Skip functions here
-                        } else {
-                            // IMPORTANT: Update textContent first
-                            el.textContent = LANG_DATA[lang][key]; 
-                        }
-                    }
-                });
-                
-                // 2. Diagram descriptions (data-text-lang)
-                const defaultHoverTextKey = 'explanation_hover';
-                diagramText.textContent = LANG_DATA[currentLang][defaultHoverTextKey];
-                
-                diagramElements.forEach(el => {
-                    const key = el.getAttribute('data-key');
-                    el.setAttribute(`data-text-${lang}`, DIAGRAM_DATA[key][lang]); 
-                });
-
-                // Update animation step texts (These must be updated separately as their containers are hidden/shown)
-                step1Text.textContent = LANG_DATA[currentLang].step1_text;
-                step2Text.textContent = LANG_DATA[currentLang].step2_text;
-                step3Text.textContent = LANG_DATA[currentLang].step3_text;
-
-                // 3. Update active button style
-                langToggleJa.classList.toggle('bg-sky-600', lang === 'ja');
-                langToggleJa.classList.toggle('text-white', lang === 'ja');
-                langToggleJa.classList.toggle('bg-gray-700', lang === 'en');
-                langToggleJa.classList.toggle('text-gray-400', lang === 'en');
-
-                langToggleEn.classList.toggle('bg-sky-600', lang === 'en');
-                langToggleEn.classList.toggle('text-white', lang === 'en');
-                langToggleEn.classList.toggle('bg-gray-700', lang === 'ja');
-                langToggleEn.classList.toggle('text-gray-400', lang === 'ja');
-
-                // 4. Update dynamic content (sliders, chart)
-                // updateLuminosityDisplay() will call updateChart()
-                updateLuminosityDisplay(); 
-                resetAnimation(); 
-
-                // 5. Re-render LaTeX content after text update
-                renderMath();
-            }
-            
-            // --- MathJax Initialization (Simulated for LaTeX) ---
-            function renderMath() {
-                // This function iterates over all relevant elements and replaces LaTeX syntax with styled text
-                document.querySelectorAll('[data-key]').forEach(el => {
-                    // Get the raw text content from LANG_DATA to ensure we process the original LaTeX
-                    const key = el.getAttribute('data-key');
-                    let rawText = LANG_DATA[currentLang][key];
-
-                    if (!rawText) return;
-                    
-                    // If the content is a function (like chart label), skip this loop
-                    if (typeof rawText === 'function') return;
-
-                    // Simulate LaTeX rendering for $...$
-                    let processedHTML = rawText.replace(/\$([^\$]+)\$/g, (match, p1) => {
-                        let innerHTML = p1
-                            .replace(/\\rm /g, '')
-                            .replace(/\\times/g, '&times;')
-                            .replace(/\\cdot/g, '&middot;')
-                            .replace(/\\to/g, '&rarr;')
-                            .replace(/\\alpha/g, 'α')
-                            .replace(/\\beta/g, 'β')
-                            .replace(/\\gamma/g, 'γ')
-                            .replace(/\\lambda/g, 'λ')
-                            .replace(/\\bol/g, 'bol') 
-                            .replace(/\{/g, '')
-                            .replace(/\}/g, '')
-                            .replace(/\\/g, '')
-                            .replace(/_/g, '<sub>')
-                            .replace(/\*/g, '</sub>')
-                        ;
-                        // Use a span with serif font and italic style for math appearance
-                        return `<span style="font-family: serif; font-style: italic; white-space: nowrap;">${innerHTML}</span>`;
-                    });
-
-                    // Update the element's content with the processed HTML
-                    el.innerHTML = processedHTML;
-                });
-            }
-
-            // Initial setup
-            // 1. Set the correct language and render math/text
-            switchLanguage(currentLang);
-            
-            // 2. CRITICAL FIX: The updateLuminosityDisplay() is called within switchLanguage()
-            // to ensure it uses the correct axis titles and data. No need for a separate call here.
-
+            // --- Event Listeners ---
             spinSlider.addEventListener('input', updateLuminosityDisplay);
             couplingSlider.addEventListener('input', updateLuminosityDisplay);
-
             langToggleJa.addEventListener('click', () => switchLanguage('ja'));
             langToggleEn.addEventListener('click', () => switchLanguage('en'));
-            
             startAnimationButton.addEventListener('click', startAnimation);
-            
-            resetAnimation(); 
             
             // --- Interactive Diagram Logic ---
             diagramElements.forEach(el => {
@@ -824,18 +830,13 @@
                         diagramText.style.opacity = '1';
                     }, 150);
                 });
-            }); 
+            });
             
             // --- Navigation Logic ---
-            const navLinks = document.querySelectorAll('.nav-link');
-            const sections = document.querySelectorAll('main section');
-
             navLinks.forEach(link => {
                 link.addEventListener('click', (e) => {
                     e.preventDefault();
-                    document.getElementById(link.dataset.target).scrollIntoView({
-                        behavior: 'smooth'
-                    });
+                    document.getElementById(link.dataset.target).scrollIntoView({ behavior: 'smooth' });
                 });
             });
             
@@ -852,6 +853,9 @@
             sections.forEach(section => {
                 observer.observe(section);
             });
+
+            // Initial setup: Load default language and trigger first chart render
+            switchLanguage(currentLang);
         });
     </script>
 </body>
