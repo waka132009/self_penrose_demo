@@ -104,7 +104,7 @@
             <h1 class="text-3xl md:text-5xl font-bold text-white mb-2" data-key="title">自己維持ペンローズ励起モデル</h1>
             <p class="text-lg md:text-xl text-sky-300" data-key="subtitle">クエーサーの超エディントン光度を説明する新理論</p>
             <p class="mt-2 max-w-3xl mx-auto text-gray-500 text-sm italic">
-                <span data-key="version_label">Version</span> v1.0.0 &mdash; <span data-key="covenant_header">Independent researcher &mdash; AI-assisted, human-responsible. Testing left to domain teams.</span>
+                <span data-key="version_label">Version</span> v1.0.1 &mdash; <span data-key="covenant_header">Independent researcher &mdash; AI-assisted, human-responsible. Testing left to domain teams.</span>
             </p>
         </header>
 
@@ -527,6 +527,7 @@
         
         // --- Core Simulation Logic ---
         function calculateLuminosity(a_star, epsilon_coup) {
+            // Phenomenological model: Lum ~ epsilon * (1/(1-a*))^0.5
             const spin_factor = Math.pow(1 / (1 - a_star), 0.5); 
             const base_lum = 15;
             let lum = base_lum * epsilon_coup * spin_factor;
@@ -534,7 +535,6 @@
         }
 
         function updateChart(current_epsilon_coup) {
-            const labels = [];
             const data = [];
             const min_a = 0.9;
             const max_a = 0.9999;
@@ -545,11 +545,13 @@
                 let a = min_a + i * step_size;
                 if (i === steps) a = max_a;
 
-                labels.push(a.toFixed(4));
-                data.push(calculateLuminosity(a, current_epsilon_coup));
+                // CRITICAL FIX: Use object format {x, y} for scatter/line chart data 
+                data.push({
+                    x: a,
+                    y: calculateLuminosity(a, current_epsilon_coup)
+                });
             }
             
-            luminosityChart.data.labels = labels;
             const eps_display = current_epsilon_coup.toFixed(3);
             
             // Set Chart Label (removes LaTeX backslashes for Chart.js)
@@ -562,6 +564,10 @@
             luminosityChart.options.scales.x.title.text = LANG_DATA[currentLang].chart_x_title.replace(/\\\$/g, '').replace(/_/g, ' '); 
             luminosityChart.options.scales.y.title.text = LANG_DATA[currentLang].chart_y_title.replace(/\\\$/g, '').replace(/_/g, ' ');
             
+            // Explicitly set X axis scale min/max to ensure proper alignment
+            luminosityChart.options.scales.x.min = min_a;
+            luminosityChart.options.scales.x.max = max_a;
+
             luminosityChart.update('none');
         }
         
@@ -764,9 +770,8 @@
             Chart.defaults.borderColor = 'rgba(156, 163, 175, 0.1)';
 
             luminosityChart = new Chart(ctx, {
-                type: 'line',
+                type: 'scatter', // Use scatter to plot {x, y} data points explicitly
                 data: {
-                    labels: [], 
                     datasets: [{
                         label: '', 
                         data: [], 
@@ -775,6 +780,7 @@
                         borderWidth: 2,
                         pointRadius: 0,
                         tension: 0.4,
+                        showLine: true, // Ensure the line is drawn between scatter points
                         fill: true,
                     }]
                 },
@@ -783,9 +789,10 @@
                     maintainAspectRatio: false,
                     scales: {
                         x: {
+                            type: 'linear', // Use linear scale for continuous X-axis values (a*)
                             title: { display: true, text: '', font: { size: 14 } },
                             min: 0.9,
-                            max: 1.0,
+                            max: 0.9999,
                         },
                         y: {
                             title: { display: true, text: '', font: { size: 14 } },
