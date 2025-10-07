@@ -115,7 +115,7 @@
             <h1 class="text-3xl md:text-5xl font-bold text-white mb-2" data-key="title">自己維持ペンローズ励起モデル</h1>
             <p class="text-lg md:text-xl text-sky-300" data-key="subtitle">クエーサーの超エディントン光度を説明する新理論</p>
             <p class="mt-2 max-w-3xl mx-auto text-gray-500 text-sm italic">
-                <span data-key="version_label">Version</span> v1.1.10 &mdash; <span data-key="covenant_header">Independent researcher — AI-assisted, human-responsible. Testing left to domain teams.</span>
+                <span data-key="version_label">Version</span> v1.1.12 &mdash; <span data-key="covenant_header">Independent researcher — AI-assisted, human-responsible. Testing left to domain teams.</span>
             </p>
         </header>
 
@@ -579,22 +579,11 @@
         
         // --- Core Simulation Logic ---
         function calculateSelfLuminosity(a_star, epsilon_coup) {
-            if (a_star < A_THRESHOLD) {
-                // Apply a smooth ramp-up immediately after threshold for visual appeal (but primarily 0 below it)
-                const ramp_factor = Math.max(0, a_star - (A_THRESHOLD - 0.005)) / 0.005;
-                
-                // If far below threshold, L_self is 0
-                if (a_star < A_THRESHOLD - 0.005) return 0;
-                
-                // If near threshold, calculate base L_self and apply ramp factor
-                const spin_factor = Math.pow(1 / (1 - a_star), 0.5); 
-                const SCALING_FACTOR = 21.2;
-                let l_self = L_ACC_NORM * epsilon_coup * SCALING_FACTOR * spin_factor;
-                
-                return l_self * ramp_factor;
-
+            if (a_star <= A_THRESHOLD) {
+                // [v1.1.12 FIX]: 閾値を下回るか等しい場合、超過光度は厳密にゼロ (視覚的妥協なし)
+                return 0;
             } else {
-                // Above threshold, full formula applies
+                // Above threshold, full formula applies (L_self proportional to (1 - a*)^-1/2)
                 const spin_factor = Math.pow(1 / (1 - a_star), 0.5); 
                 const SCALING_FACTOR = 21.2;
                 return L_ACC_NORM * epsilon_coup * SCALING_FACTOR * spin_factor;
@@ -901,7 +890,7 @@
                         backgroundColor: 'rgba(250, 204, 21, 0.1)',
                         borderWidth: 2,
                         pointRadius: 0,
-                        tension: 0.4,
+                        tension: 0.0, // TENSION 0.0 FOR SHARP, NON-SMOOTH CURVE
                         showLine: true, 
                         fill: 'origin', 
                     }]
